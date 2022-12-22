@@ -7,7 +7,6 @@ package io.github.skunkworks1983.timeclock.db.generated.tables;
 import io.github.skunkworks1983.timeclock.db.generated.DefaultSchema;
 import io.github.skunkworks1983.timeclock.db.generated.Keys;
 import io.github.skunkworks1983.timeclock.db.generated.tables.records.MembersRecord;
-
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
@@ -70,14 +69,14 @@ public class Members extends TableImpl<MembersRecord> {
     public final TableField<MembersRecord, Float> HOURS = createField(DSL.name("hours"), SQLDataType.REAL, this, "");
 
     /**
-     * The column <code>members.lastSignedIn</code>.
-     */
-    public final TableField<MembersRecord, Integer> LASTSIGNEDIN = createField(DSL.name("lastSignedIn"), SQLDataType.INTEGER, this, "");
-
-    /**
      * The column <code>members.isSignedIn</code>.
      */
     public final TableField<MembersRecord, Integer> ISSIGNEDIN = createField(DSL.name("isSignedIn"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>members.lastSignedIn</code>.
+     */
+    public final TableField<MembersRecord, Long> LASTSIGNEDIN = createField(DSL.name("lastSignedIn"), SQLDataType.BIGINT, this, "");
 
     private Members(Name alias, Table<MembersRecord> aliased) {
         this(alias, aliased, null);
@@ -153,7 +152,7 @@ public class Members extends TableImpl<MembersRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<String, String, String, String, Float, Integer, Integer> fieldsRow() {
+    public Row7<String, String, String, String, Float, Integer, Long> fieldsRow() {
         return (Row7) super.fieldsRow();
     }
 }

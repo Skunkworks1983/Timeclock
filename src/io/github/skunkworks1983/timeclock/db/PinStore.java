@@ -30,8 +30,15 @@ public class PinStore
                                                           .from(Pins.PINS)
                                                           .where(Pins.PINS.MEMBERID.eq(memberId.toString()))
                                                           .fetch();
-            byte[] salt = result.getValues(Pins.PINS.SALT).get(0);
-            return computeHash(salt, result.getValues(Pins.PINS.HASH).get(0).toCharArray()).equals(computeHash(salt, pin.toCharArray()));
+            if(result.isNotEmpty())
+            {
+                byte[] salt = result.getValues(Pins.PINS.SALT).get(0);
+                return computeHash(salt, result.getValues(Pins.PINS.HASH).get(0).toCharArray()).equals(
+                        computeHash(salt, pin.toCharArray()));
+            }
+            
+            System.err.println("No PIN found");
+            return false;
         }
         catch(SQLException e)
         {
@@ -45,40 +52,68 @@ public class PinStore
         }
     }
     
+    public boolean doesPinExist(UUID memberId)
+    {
+        try(Connection connection = DatabaseConnector.createConnection())
+        {
+            DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
+            return query.select().from(Pins.PINS).where(Pins.PINS.MEMBERID.eq(memberId.toString())).fetchAny() != null;
+        }
+        catch(SQLException e)
+        {
+            System.err.println("Failed to query for PIN: " + e.getMessage());
+            return false;
+        }
+    }
+    
     public char[] createPin(UUID memberId)
     {
         try
         {
             SecureRandom rand = SecureRandom.getInstanceStrong();
             char[] pin = new char[PIN_LENGTH];
-            byte[] salt = new byte[4];
             for(int i = 0; i < pin.length; i++)
             {
                 pin[i] = Character.forDigit(rand.nextInt(10), 10);
             }
+            return createPin(memberId, pin);
+        }
+        catch(NoSuchAlgorithmException e)
+        {
+            System.err.println("Generating PIN failed: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    public char[] createPin(UUID memberId, char[] pin)
+    {
+        try
+        {
+            SecureRandom rand = SecureRandom.getInstanceStrong();
+            byte[] salt = new byte[4];
             rand.nextBytes(salt);
-            
+        
             String hash = computeHash(salt, pin);
-            
+        
             try(Connection connection = DatabaseConnector.createConnection())
             {
                 DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
-                
+            
                 query.insertInto(Pins.PINS, Pins.PINS.MEMBERID, Pins.PINS.SALT, Pins.PINS.HASH)
-                        .values(memberId.toString(), salt, hash)
-                        .execute();
+                     .values(memberId.toString(), salt, hash)
+                     .execute();
             }
             catch(SQLException e)
             {
                 System.err.println("Inserting PIN failed: " + e.getMessage());
                 return null;
             }
-    
+        
             return pin;
         }
         catch(NoSuchAlgorithmException e)
         {
-            System.err.println("Generating PIN failed: " + e.getMessage());
+            System.err.println("Generating salt failed: " + e.getMessage());
             return null;
         }
     }
