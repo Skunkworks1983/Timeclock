@@ -1,5 +1,6 @@
 package io.github.skunkworks1983.timeclock;
 
+import com.google.inject.Guice;
 import io.github.skunkworks1983.timeclock.db.DatabaseConnector;
 import io.github.skunkworks1983.timeclock.ui.MainWindow;
 
@@ -17,6 +18,7 @@ public class Main
                 DatabaseConnector.setDatabaseFile(args[0]);
             }
         }
-        new MainWindow();
+    
+        Guice.createInjector().getInstance(MainWindow.class).prepare();
     }
 }

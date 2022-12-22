@@ -1,19 +1,19 @@
 package io.github.skunkworks1983.timeclock.ui;
 
-import io.github.skunkworks1983.timeclock.db.MemberStore;
+import com.google.inject.Inject;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 
 public class MemberListPanel extends JPanel
 {
     private MemberList memberList;
     
-    public MemberListPanel(MemberStore memberStore, PinWindow pinWindow)
+    @Inject
+    public MemberListPanel(MemberList memberList)
     {
-        memberList = new MemberList(memberStore, pinWindow);
-        JScrollPane scrollPane = new JScrollPane(memberList);
+        this.memberList = memberList;
+        JScrollPane scrollPane = new JScrollPane(this.memberList);
         
         add(scrollPane);
     }

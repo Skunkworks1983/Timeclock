@@ -1,6 +1,5 @@
 package io.github.skunkworks1983.timeclock.db;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class DaySchedule

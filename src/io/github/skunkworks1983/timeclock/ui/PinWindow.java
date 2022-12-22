@@ -1,5 +1,6 @@
 package io.github.skunkworks1983.timeclock.ui;
 
+import com.google.inject.Inject;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.PinStore;
 
@@ -25,6 +26,7 @@ public class PinWindow extends JFrame
     private JLabel promptText;
     private JPasswordField pinField;
     
+    @Inject
     public PinWindow(PinStore pinStore) throws HeadlessException
     {
         super("Enter PIN");

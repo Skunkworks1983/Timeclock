@@ -1,5 +1,6 @@
 package io.github.skunkworks1983.timeclock.ui;
 
+import com.google.inject.Inject;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
 
@@ -21,6 +22,7 @@ public class MemberList extends JList<Member>
 {
     private MemberStore memberStore;
     
+    @Inject
     public MemberList(MemberStore memberStore, PinWindow pinWindow)
     {
         super();
