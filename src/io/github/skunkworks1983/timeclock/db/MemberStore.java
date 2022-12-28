@@ -1,43 +1,85 @@
 package io.github.skunkworks1983.timeclock.db;
 
-import java.util.Comparator;
-import java.util.HashMap;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
+
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 public class MemberStore
 {
-    private Map<UUID, Member> memberMap;
-    
     public MemberStore()
     {
-        memberMap = new HashMap<>();
-        
-        for(int i = 0; i < 40; i++)
-        {
-            Member test = new Member(UUID.randomUUID(), Role.ADMIN, "first" + i, "last" + (i % 5), 10 * i, System.currentTimeMillis()/1000, i % 2 == 0);
-            memberMap.put(test.getId(), test);
-        }
     }
     
     public List<Member> getMembers()
     {
-        return memberMap.values().stream().sorted(Comparator.comparing(Member::getFirstName)).sorted(Comparator.comparing(Member::getLastName)).collect(Collectors.toList());
+        List<Member> memberList = DatabaseConnector
+                .runQuery(query ->
+                              {
+                                  List<Member> members = query.selectFrom(Members.MEMBERS)
+                                                              .orderBy(Members.MEMBERS.LASTNAME.asc(),
+                                                                       Members.MEMBERS.FIRSTNAME.asc())
+                                                              .fetch()
+                                                              .into(Member.class);
+                                  return members;
+                              });
+        
+        return memberList;
     }
     
-    public void toggleSignIn(UUID memberId)
+    public void signIn(Member member)
     {
-        Member member = memberMap.get(memberId);
+        if(!member.isSignedIn())
+        {
+            member.setLastSignIn(TimeUtil.getCurrentTimestamp());
+            member.setSignedIn(true);
+            
+            DatabaseConnector.runQuery(query ->
+                                           {
+                                               query.update(Members.MEMBERS)
+                                                    .set(Members.MEMBERS.LASTSIGNEDIN, member.getLastSignIn())
+                                                    .set(Members.MEMBERS.ISSIGNEDIN, 1)
+                                                    .where(Members.MEMBERS.ID.eq(member.getId().toString()))
+                                                    .execute();
+                                               
+                                               return null;
+                                           });
+        }
+    }
+    
+    public void signOut(Member member)
+    {
+        signOut(member, false);
+    }
+    
+    public void signOut(Member member, boolean force)
+    {
         if(member.isSignedIn())
         {
-            member.setHours(member.getHours() + (System.currentTimeMillis() / 1000 - member.getLastSignIn()));
+            long memberTimeSec = TimeUtil.convertHourToSec(member.getHours());
+            if(force)
+            {
+                memberTimeSec += Math.min(TimeUtil.getCurrentTimestamp() - member.getLastSignIn(),
+                                          TimeUnit.HOURS.toSeconds(1));
+            }
+            else
+            {
+                memberTimeSec += TimeUtil.getCurrentTimestamp() - member.getLastSignIn();
+            }
+            member.setHours(TimeUtil.convertSecToHour(memberTimeSec));
+            member.setSignedIn(false);
+    
+            DatabaseConnector.runQuery(query ->
+                                           {
+                                               query.update(Members.MEMBERS)
+                                                    .set(Members.MEMBERS.HOURS, (float)member.getHours())
+                                                    .set(Members.MEMBERS.ISSIGNEDIN, 0)
+                                                    .where(Members.MEMBERS.ID.eq(member.getId().toString()))
+                                                    .execute();
+            
+                                               return null;
+                                           });
         }
-        else
-        {
-            member.setLastSignIn(System.currentTimeMillis()/1000);
-        }
-        member.setSignedIn(!member.isSignedIn());
     }
 }

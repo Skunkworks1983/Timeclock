@@ -1,5 +1,6 @@
 package io.github.skunkworks1983.timeclock.db;
 
+import com.google.inject.Inject;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Sessions;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -10,15 +11,23 @@ import java.sql.SQLException;
 
 public class SessionStore
 {
-    public void startSession(Member member, boolean delayUntilScheduled)
+    private ScheduleStore scheduleStore;
+    
+    @Inject
+    public SessionStore(ScheduleStore scheduleStore)
     {
-        if(member.getRole().equals(Role.ADMIN) && !isSessionActive())
+        this.scheduleStore = scheduleStore;
+    }
+    
+    public void startSession(Member startedBy, boolean delayUntilScheduled)
+    {
+        if(startedBy.getRole().equals(Role.ADMIN) && !isSessionActive())
         {
             try(Connection connection = DatabaseConnector.createConnection())
             {
                 DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
                 query.insertInto(Sessions.SESSIONS)
-                     .values(TimeUtil.getCurrentTimestamp(), 0, 0, member.getId().toString(), null)
+                     .values(0, startedBy.getId().toString(), null, TimeUtil.getCurrentTimestamp(), 0)
                      .execute();
             }
             catch(SQLException throwables)
@@ -28,17 +37,26 @@ public class SessionStore
         }
     }
     
-    public void endSession(Member member)
+    public void endSession(Member endedBy)
     {
-        if(member.getRole().equals(Role.ADMIN) && isSessionActive())
+        if(endedBy.getRole().equals(Role.ADMIN) && isSessionActive())
         {
             try(Connection connection = DatabaseConnector.createConnection())
             {
                 DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
+                long sessionEnd = TimeUtil.getCurrentTimestamp();
+                long sessionStart = query.select(Sessions.SESSIONS.START)
+                                         .from(Sessions.SESSIONS)
+                                         .where(Sessions.SESSIONS.END.eq(0L))
+                                         .fetchAny()
+                                         .get(Sessions.SESSIONS.START);
+                double scheduledHours = scheduleStore.getScheduleOverlap(TimeUtil.getDateTime(sessionStart), TimeUtil.getDateTime(sessionEnd));
+                
                 query.update(Sessions.SESSIONS)
-                     .set(Sessions.SESSIONS.END, TimeUtil.getCurrentTimestamp())
-                     .set(Sessions.SESSIONS.SCHEDULEDHOURS, 0.f)
-                     .set(Sessions.SESSIONS.ENDEDBY, member.getId().toString())
+                     .set(Sessions.SESSIONS.END, sessionEnd)
+                     .set(Sessions.SESSIONS.SCHEDULEDHOURS, (float)scheduledHours)
+                     .set(Sessions.SESSIONS.ENDEDBY, endedBy.getId().toString())
+                     .where(Sessions.SESSIONS.END.eq(0L))
                      .execute();
             }
             catch(SQLException throwables)

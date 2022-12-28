@@ -1,8 +1,11 @@
 package io.github.skunkworks1983.timeclock.ui;
 
 import com.google.inject.Inject;
+import io.github.skunkworks1983.timeclock.controller.SessionController;
+import io.github.skunkworks1983.timeclock.controller.SignInController;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
+import io.github.skunkworks1983.timeclock.db.TimeUtil;
 
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -14,22 +17,17 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 
 public class MemberList extends JList<Member>
 {
-    private MemberStore memberStore;
-    
     @Inject
-    public MemberList(MemberStore memberStore, PinWindow pinWindow)
+    public MemberList(MemberStore memberStore, SignInController signInController, SessionController sessionController,
+                      PinWindow pinWindow, PinCreationWindow pinCreationWindow, AlertWindow alertWindow)
     {
         super();
-        this.memberStore = memberStore;
         
         setListData(memberStore.getMembers().toArray(new Member[0]));
-        setCellRenderer(new MemberListCellRenderer());
+        setCellRenderer(new MemberListCellRenderer(sessionController));
         
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         clearSelection();
@@ -58,13 +56,22 @@ public class MemberList extends JList<Member>
                             selection -= 1;
                             setSelectedIndex(selection);
                             System.out.println("selecting " + selection);
-                            pinWindow.setCurrentMember(getSelectedValue());
-                            pinWindow.setSuccessCallback((member ->
-                                {
-                                    memberStore.toggleSignIn(member.getId());
-                                    return null;
-                                }));
-                            pinWindow.setVisible(true);
+                            Member selectedMember = getSelectedValue();
+                            if(signInController.shouldCreatePin(selectedMember))
+                            {
+                                alertWindow.showAlert(new AlertMessage(false,
+                                                                       "You haven't set a PIN yet. Please set a four-digit PIN to sign in and out with on the next screen. Your PIN may not contain the same number more than two times in a row.",
+                                                                       () ->
+                                    {
+                                        pinCreationWindow.setCurrentMember(selectedMember);
+                                        pinCreationWindow.setVisible(true);
+                                    }));
+                            }
+                            else
+                            {
+                                pinWindow.setCurrentMember(selectedMember);
+                                pinWindow.setVisible(true);
+                            }
                         }
                         else
                         {
@@ -95,7 +102,13 @@ public class MemberList extends JList<Member>
     
     private static class MemberListCellRenderer implements ListCellRenderer<Member>
     {
-        
+        private SessionController sessionController;
+    
+        public MemberListCellRenderer(SessionController sessionController)
+        {
+            this.sessionController = sessionController;
+        }
+    
         @Override
         public Component getListCellRendererComponent(JList<? extends Member> list, Member value, int index,
                                                       boolean isSelected, boolean cellHasFocus)
@@ -105,12 +118,9 @@ public class MemberList extends JList<Member>
             JLabel firstName = new JLabel(value.getFirstName());
             JLabel lastName = new JLabel(value.getLastName());
             JLabel signInTime = new JLabel(value.isSignedIn()
-                                                   ? DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
-                    LocalDateTime.ofEpochSecond(value.getLastSignIn(),
-                                                0,
-                                                ZoneOffset.ofHours(-8)))
+                                                   ? TimeUtil.formatTime(value.getLastSignIn())
                                                    : "Signed out");
-            JLabel requirementMet = new JLabel(value.getHours() > 0 ? "yes" : "no");
+            JLabel requirementMet = new JLabel(String.format("%3.1f/%3.1f", value.getHours(), 0.8 * sessionController.calculateScheduledHours()));
             
             rowPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
             

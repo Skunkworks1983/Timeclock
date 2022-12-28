@@ -20,7 +20,7 @@ public class PinStore
 {
     public static int PIN_LENGTH = 4;
     
-    public boolean checkPin(UUID memberId, String pin)
+    public boolean checkPin(UUID memberId, char[] pin)
     {
         try(Connection connection = DatabaseConnector.createConnection())
         {
@@ -33,8 +33,7 @@ public class PinStore
             if(result.isNotEmpty())
             {
                 byte[] salt = result.getValues(Pins.PINS.SALT).get(0);
-                return computeHash(salt, result.getValues(Pins.PINS.HASH).get(0).toCharArray()).equals(
-                        computeHash(salt, pin.toCharArray()));
+                return result.getValues(Pins.PINS.HASH).get(0).equals(computeHash(salt, pin));
             }
             
             System.err.println("No PIN found");
@@ -124,11 +123,6 @@ public class PinStore
         digest.update(salt);
         CharBuffer pinBuffer = CharBuffer.wrap(pin);
         byte[] hash = digest.digest(Charset.defaultCharset().encode(pinBuffer).array());
-        pinBuffer.clear();
-        for(int i = 0; i < pin.length; i++)
-        {
-            pinBuffer.put('0');
-        }
         StringBuilder hashBuilder = new StringBuilder();
         for(byte b: hash)
         {

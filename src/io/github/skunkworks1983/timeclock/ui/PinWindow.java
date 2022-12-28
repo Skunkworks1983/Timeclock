@@ -1,6 +1,7 @@
 package io.github.skunkworks1983.timeclock.ui;
 
 import com.google.inject.Inject;
+import io.github.skunkworks1983.timeclock.controller.SignInController;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.PinStore;
 
@@ -14,27 +15,21 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.util.Arrays;
-import java.util.function.Function;
 
 public class PinWindow extends JFrame
 {
-    private PinStore pinStore;
-    
     private Member currentMember;
-    private Function<Member, Void> successCallback;
-    
     private JLabel promptText;
     private JPasswordField pinField;
     
     @Inject
-    public PinWindow(PinStore pinStore) throws HeadlessException
+    public PinWindow(SignInController signInController, AlertWindow alertWindow) throws HeadlessException
     {
         super("Enter PIN");
         
         promptText = new JLabel("No member set");
         pinField = new JPasswordField();
         
-        setAlwaysOnTop(true);
         setAutoRequestFocus(true);
         
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
@@ -67,11 +62,14 @@ public class PinWindow extends JFrame
                 if(e.getKeyChar() == '\n')
                 {
                     char[] pinChars = pinField.getPassword();
-                    String enteredPin = new String(pinChars);
-                    if(enteredPin.length() == PinStore.PIN_LENGTH && pinStore.checkPin(currentMember.getId(), enteredPin))
+                    if(pinChars.length == PinStore.PIN_LENGTH)
                     {
-                        successCallback.apply(currentMember);
-                        setVisible(false);
+                        AlertMessage alert = signInController.handleSignIn(currentMember, !currentMember.isSignedIn(), pinChars);
+                        alertWindow.showAlert(alert);
+                        if(alert.isSuccess())
+                        {
+                            setVisible(false);
+                        }
                     }
                     Arrays.fill(pinChars, (char) 0);
                     pinField.setText("");
@@ -102,10 +100,5 @@ public class PinWindow extends JFrame
         promptText.setText(String.format("Enter pin for %s %s (backspace to return to menu without signing in):",
                                          currentMember.getFirstName(), currentMember.getLastName()));
         pack();
-    }
-    
-    public void setSuccessCallback(Function<Member, Void> successCallback)
-    {
-        this.successCallback = successCallback;
     }
 }

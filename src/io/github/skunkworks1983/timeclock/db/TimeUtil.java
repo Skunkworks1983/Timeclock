@@ -18,10 +18,20 @@ public class TimeUtil
                 .format(LocalDateTime.ofEpochSecond(millis, 0, OffsetDateTime.now().getOffset()));
     }
     
-    public static LocalDateTime getDateTime(long millis)
+    public static LocalDateTime getDateTime(long seconds)
     {
-        return LocalDateTime.ofEpochSecond(TimeUnit.MILLISECONDS.toSeconds(millis),
-                                           (int)TimeUnit.MILLISECONDS.toNanos(millis % 1000),
+        return LocalDateTime.ofEpochSecond(seconds,
+                                           0,
                                            OffsetDateTime.now().getOffset());
+    }
+    
+    public static double convertSecToHour(long seconds)
+    {
+        return seconds/(60. * 60);
+    }
+    
+    public static long convertHourToSec(double hours)
+    {
+        return (long)(hours * 60 * 60);
     }
 }
