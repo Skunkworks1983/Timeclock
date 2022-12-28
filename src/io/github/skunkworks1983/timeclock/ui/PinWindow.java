@@ -22,6 +22,8 @@ public class PinWindow extends JFrame
     private JLabel promptText;
     private JPasswordField pinField;
     
+    private Runnable successCallback;
+    
     @Inject
     public PinWindow(SignInController signInController, AlertWindow alertWindow) throws HeadlessException
     {
@@ -56,6 +58,8 @@ public class PinWindow extends JFrame
         });
         
         pinField.addKeyListener(new KeyListener() {
+            private boolean readyToClose = true;
+            
             @Override
             public void keyTyped(KeyEvent e)
             {
@@ -69,14 +73,28 @@ public class PinWindow extends JFrame
                         if(alert.isSuccess())
                         {
                             setVisible(false);
+                            successCallback.run();
                         }
                     }
                     Arrays.fill(pinChars, (char) 0);
                     pinField.setText("");
+                    readyToClose = true;
                 }
                 else if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE && pinField.getPassword().length == 0)
                 {
-                    setVisible(false);
+                    // add an extra step here because otherwise the window will hide when backspacing the last character
+                    if(readyToClose)
+                    {
+                        setVisible(false);
+                    }
+                    else
+                    {
+                        readyToClose = true;
+                    }
+                }
+                else
+                {
+                    readyToClose = false;
                 }
             }
     
@@ -100,5 +118,10 @@ public class PinWindow extends JFrame
         promptText.setText(String.format("Enter pin for %s %s (backspace to return to menu without signing in):",
                                          currentMember.getFirstName(), currentMember.getLastName()));
         pack();
+    }
+    
+    public void setSuccessCallback(Runnable successCallback)
+    {
+        this.successCallback = successCallback;
     }
 }

@@ -4,6 +4,8 @@ import com.google.inject.Guice;
 import io.github.skunkworks1983.timeclock.db.DatabaseConnector;
 import io.github.skunkworks1983.timeclock.ui.MainWindow;
 
+import javax.swing.UIManager;
+import java.awt.Font;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -19,6 +21,10 @@ public class Main
             }
         }
     
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        UIManager.put("Label.font", new Font(null, Font.PLAIN, 20));
+        UIManager.put("PasswordField.font", new Font(null, Font.PLAIN, 20));
+        
         Guice.createInjector().getInstance(MainWindow.class).prepare();
     }
 }

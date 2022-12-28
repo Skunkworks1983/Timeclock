@@ -58,29 +58,44 @@ public class SignInController
             }
             else
             {
-                if(signingIn)
+                if(pinStore.checkPin(member.getId(), pin))
                 {
-                    memberStore.signIn(member);
-                    if(!isSessionActive)
+                    if(signingIn)
                     {
-                        sessionStore.startSession(member, false);
-                        return new AlertMessage(true, String.format("Session started by %s %s at %s.", member.getFirstName(), member.getLastName(),
-                                                                    TimeUtil.formatTime(TimeUtil.getCurrentTimestamp())));
+                        memberStore.signIn(member);
+                        if(!isSessionActive)
+                        {
+                            sessionStore.startSession(member, false);
+                            return new AlertMessage(true, String.format("Session started by %s %s at %s.",
+                                                                        member.getFirstName(), member.getLastName(),
+                                                                        TimeUtil.formatTime(
+                                                                                TimeUtil.getCurrentTimestamp())));
+                        }
+                        return new AlertMessage(true, null);
                     }
-                    return new AlertMessage(true, null);
+                    else
+                    {
+                        memberStore.signOut(member);
+                        boolean isAnyAdminSignedIn = memberStore.getMembers()
+                                                                .stream()
+                                                                .anyMatch(m -> m.getRole()
+                                                                                .equals(Role.ADMIN) && m.isSignedIn());
+                        if(!isAnyAdminSignedIn)
+                        {
+                            memberStore.getMembers().stream().forEach(m -> memberStore.signOut(m, true));
+                            sessionStore.endSession(member);
+                            return new AlertMessage(true, String.format("Session ended by %s %s at %s.",
+                                                                        member.getFirstName(), member.getLastName(),
+                                                                        TimeUtil.formatTime(
+                                                                                TimeUtil.getCurrentTimestamp())));
+                        }
+                        return new AlertMessage(true, null);
+                    }
                 }
                 else
                 {
-                    memberStore.signOut(member);
-                    boolean isAnyAdminSignedIn = memberStore.getMembers().stream().anyMatch(m -> m.getRole().equals(Role.ADMIN) && m.isSignedIn());
-                    if(!isAnyAdminSignedIn)
-                    {
-                        memberStore.getMembers().stream().forEach(m -> memberStore.signOut(m, true));
-                        sessionStore.endSession(member);
-                        return new AlertMessage(true, String.format("Session ended by %s %s at %s.", member.getFirstName(), member.getLastName(),
-                                                                    TimeUtil.formatTime(TimeUtil.getCurrentTimestamp())));
-                    }
-                    return new AlertMessage(true, null);
+                    return new AlertMessage(false, String.format("Wrong PIN entered for %s %s.", member.getFirstName(),
+                                                                 member.getLastName()));
                 }
             }
 

@@ -6,15 +6,18 @@ import io.github.skunkworks1983.timeclock.controller.SignInController;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
 import io.github.skunkworks1983.timeclock.db.TimeUtil;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -43,6 +46,19 @@ public class MemberList extends JList<Member>
                 {
                     buffer += e.getKeyChar();
                     System.out.println("buffer " + buffer);
+                    if(!buffer.isBlank())
+                    {
+                        int selection = Integer.parseInt(buffer);
+                        if(0 < selection && selection <= getModel().getSize())
+                        {
+                            selection -= 1;
+                            setSelectedIndex(selection);
+                        }
+                        else
+                        {
+                            clearSelection();
+                        }
+                    }
                 }
                 else if(e.getKeyChar() == '\n')
                 {
@@ -64,12 +80,14 @@ public class MemberList extends JList<Member>
                                                                        () ->
                                     {
                                         pinCreationWindow.setCurrentMember(selectedMember);
+                                        pinCreationWindow.setSuccessCallback(() -> setListData(memberStore.getMembers().toArray(new Member[0])));
                                         pinCreationWindow.setVisible(true);
                                     }));
                             }
                             else
                             {
                                 pinWindow.setCurrentMember(selectedMember);
+                                pinWindow.setSuccessCallback(() -> setListData(memberStore.getMembers().toArray(new Member[0])));
                                 pinWindow.setVisible(true);
                             }
                         }
@@ -115,6 +133,7 @@ public class MemberList extends JList<Member>
         {
             JPanel rowPanel = new JPanel();
             JLabel rowLabel = new JLabel(Integer.toString(index + 1));
+            rowLabel.setFont(new Font(null, Font.BOLD, 20));
             JLabel firstName = new JLabel(value.getFirstName());
             JLabel lastName = new JLabel(value.getLastName());
             JLabel signInTime = new JLabel(value.isSignedIn()
@@ -122,7 +141,7 @@ public class MemberList extends JList<Member>
                                                    : "Signed out");
             JLabel requirementMet = new JLabel(String.format("%3.1f/%3.1f", value.getHours(), 0.8 * sessionController.calculateScheduledHours()));
             
-            rowPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+            rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150][grow][250][100]", "[24!]"));
             
             rowPanel.add(rowLabel);
             rowPanel.add(firstName);

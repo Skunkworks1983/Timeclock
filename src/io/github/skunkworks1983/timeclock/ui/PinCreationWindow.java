@@ -22,6 +22,8 @@ public class PinCreationWindow extends JFrame
     private JLabel promptText;
     private JPasswordField pinField;
     
+    private Runnable successCallback;
+    
     @Inject
     public PinCreationWindow(SignInController signInController, AlertWindow alertWindow) throws HeadlessException
     {
@@ -58,6 +60,7 @@ public class PinCreationWindow extends JFrame
         pinField.addKeyListener(new KeyListener() {
             private char[] pinChars = null;
             private char[] pinToSet = null;
+            private boolean readyToClose = true;
             
             @Override
             public void keyTyped(KeyEvent e)
@@ -80,6 +83,7 @@ public class PinCreationWindow extends JFrame
                                 Arrays.fill(pinToSet, (char) 0);
                                 pinToSet = null;
                                 setVisible(false);
+                                successCallback.run();
                             }
                             else
                             {
@@ -134,15 +138,27 @@ public class PinCreationWindow extends JFrame
                     }
                     Arrays.fill(pinChars, (char) 0);
                     pinField.setText("");
+                    readyToClose = true;
                 }
                 else if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE && pinField.getPassword().length == 0)
                 {
-                    if(pinToSet != null)
+                    if(readyToClose)
                     {
-                        Arrays.fill(pinToSet, (char) 0);
+                        if(pinToSet != null)
+                        {
+                            Arrays.fill(pinToSet, (char) 0);
+                        }
+                        pinToSet = null;
+                        setVisible(false);
                     }
-                    pinToSet = null;
-                    setVisible(false);
+                    else
+                    {
+                        readyToClose = true;
+                    }
+                }
+                else
+                {
+                    readyToClose = false;
                 }
             }
             
@@ -166,5 +182,10 @@ public class PinCreationWindow extends JFrame
         promptText.setText(String.format("Enter PIN for %s %s (backspace to return to menu without creating PIN):",
                                          currentMember.getFirstName(), currentMember.getLastName()));
         pack();
+    }
+    
+    public void setSuccessCallback(Runnable successCallback)
+    {
+        this.successCallback = successCallback;
     }
 }
