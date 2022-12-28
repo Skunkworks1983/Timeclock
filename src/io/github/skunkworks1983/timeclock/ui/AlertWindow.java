@@ -60,6 +60,7 @@ public class AlertWindow extends JFrame
     {
         if(message.getMessage() != null)
         {
+            setTitle(message.isSuccess() ? "Message" : "Error");
             messageLabel.setText(message.getMessage());
             okButtonCallback = message.getOkButtonCallback();
     

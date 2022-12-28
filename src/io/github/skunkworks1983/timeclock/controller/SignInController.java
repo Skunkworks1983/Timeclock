@@ -82,12 +82,21 @@ public class SignInController
                                                                                 .equals(Role.ADMIN) && m.isSignedIn());
                         if(!isAnyAdminSignedIn)
                         {
-                            memberStore.getMembers().stream().forEach(m -> memberStore.signOut(m, true));
+                            int membersSignedOut = 0;
+                            for(Member memberToSignOut: memberStore.getMembers())
+                            {
+                                if(memberToSignOut.isSignedIn())
+                                {
+                                    membersSignedOut++;
+                                    memberStore.signOut(memberToSignOut, true);
+                                }
+                            }
+                            
                             sessionStore.endSession(member);
-                            return new AlertMessage(true, String.format("Session ended by %s %s at %s.",
+                            return new AlertMessage(true, String.format("Session ended by %s %s at %s; %d member(s) force signed out.",
                                                                         member.getFirstName(), member.getLastName(),
-                                                                        TimeUtil.formatTime(
-                                                                                TimeUtil.getCurrentTimestamp())));
+                                                                        TimeUtil.formatTime(TimeUtil.getCurrentTimestamp()),
+                                                                        membersSignedOut));
                         }
                         return new AlertMessage(true, null);
                     }
@@ -106,6 +115,7 @@ public class SignInController
     
     public boolean shouldCreatePin(Member member)
     {
+        // TODO uncomment when admin panel exists
         return /*!member.getRole().equals(Role.ADMIN) &&*/ !pinStore.doesPinExist(member.getId());
     }
     
