@@ -19,47 +19,35 @@ public class PinStore
     
     public boolean checkPin(UUID memberId, char[] pin)
     {
-        try(Connection connection = DatabaseConnector.createConnection())
+        Result<Record2<byte[], String>> result = DatabaseConnector.runQuery(query -> {
+            return query.select(Pins.PINS.SALT, Pins.PINS.HASH)
+                        .from(Pins.PINS)
+                        .where(Pins.PINS.MEMBERID.eq(memberId.toString()))
+                        .fetch();
+        });
+        if(result.isNotEmpty())
         {
-            DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
-            
-            Result<Record2<byte[], String>> result = query.select(Pins.PINS.SALT, Pins.PINS.HASH)
-                                                          .from(Pins.PINS)
-                                                          .where(Pins.PINS.MEMBERID.eq(memberId.toString()))
-                                                          .fetch();
-            if(result.isNotEmpty())
+            byte[] salt = result.getValues(Pins.PINS.SALT).get(0);
+            try
             {
-                byte[] salt = result.getValues(Pins.PINS.SALT).get(0);
                 return result.getValues(Pins.PINS.HASH).get(0).equals(HashUtil.computeHash(salt, pin));
             }
-            
-            System.err.println("No PIN found");
-            return false;
+            catch(NoSuchAlgorithmException e)
+            {
+                e.printStackTrace();
+            }
         }
-        catch(SQLException e)
-        {
-            System.err.println("Failed to query for PIN: " + e.getMessage());
-            return false;
-        }
-        catch(NoSuchAlgorithmException e)
-        {
-            System.err.println("Failed to compute hash for PIN: " + e.getMessage());
-            return false;
-        }
+        
+        System.err.println("No PIN found");
+        return false;
     }
     
     public boolean doesPinExist(UUID memberId)
     {
-        try(Connection connection = DatabaseConnector.createConnection())
-        {
-            DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
-            return query.select().from(Pins.PINS).where(Pins.PINS.MEMBERID.eq(memberId.toString())).fetchAny() != null;
-        }
-        catch(SQLException e)
-        {
-            System.err.println("Failed to query for PIN: " + e.getMessage());
-            return false;
-        }
+        return DatabaseConnector.runQuery(query -> query.select()
+                                                        .from(Pins.PINS)
+                                                        .where(Pins.PINS.MEMBERID.eq(memberId.toString()))
+                                                        .fetchAny() != null);
     }
     
     public char[] createPin(UUID memberId)
@@ -91,19 +79,12 @@ public class PinStore
             
             String hash = HashUtil.computeHash(salt, pin);
             
-            try(Connection connection = DatabaseConnector.createConnection())
-            {
-                DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
-                
+            DatabaseConnector.runQuery(query -> {
                 query.insertInto(Pins.PINS, Pins.PINS.MEMBERID, Pins.PINS.SALT, Pins.PINS.HASH)
                      .values(memberId.toString(), salt, hash)
                      .execute();
-            }
-            catch(SQLException e)
-            {
-                System.err.println("Inserting PIN failed: " + e.getMessage());
                 return null;
-            }
+            });
             
             return pin;
         }
