@@ -76,7 +76,7 @@ public class SessionController
         sessionStore.endSession(endedBy);
         
         // back up database
-        SwingUtilities.invokeLater(() -> {
+        new Thread(() -> {
             String currentDbFile = DatabaseConnector.getDatabaseFile();
             String backupDbFile = String.format("%s-%d", currentDbFile, TimeUtil.getCurrentTimestamp());
             try
@@ -101,7 +101,7 @@ public class SessionController
                 
                 transferManager.upload("skunklogindbbackupbucket", backupDbFile, new File(backupDbFile));
             }
-        });
+        }).start();
         
         
         return new AlertMessage(true, String.format("Session ended by %s %s at %s; %d member(s) force signed out.",

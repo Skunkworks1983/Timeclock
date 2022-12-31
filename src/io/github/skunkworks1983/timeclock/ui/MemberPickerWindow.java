@@ -5,6 +5,7 @@ import io.github.skunkworks1983.timeclock.db.Role;
 
 import javax.swing.JFrame;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,8 @@ public class MemberPickerWindow extends JFrame
     {
         super("Choose a user");
         this.memberListPanel = memberListPanel;
+    
+        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
         add(memberListPanel);
         

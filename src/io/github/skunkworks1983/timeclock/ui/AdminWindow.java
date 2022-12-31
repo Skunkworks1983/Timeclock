@@ -11,6 +11,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
@@ -69,6 +70,8 @@ public class AdminWindow extends JFrame
         signMemberOutButton = new JButton("4: Force a member to sign out");
         resetPinButton = new JButton("5: Reset member's PIN");
         createAdminPinButton = new JButton("6: Set PIN for admin member");
+    
+        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
         setLayout(new MigLayout("", "[grow]", "[][][][][][][][]"));
         

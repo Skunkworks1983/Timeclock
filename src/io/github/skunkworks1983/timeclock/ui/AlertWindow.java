@@ -6,6 +6,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -21,6 +22,8 @@ public class AlertWindow extends JFrame
     {
         messageLabel = new JLabel();
         okButton = new JButton("OK");
+    
+        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
         setLayout(new MigLayout("", "[grow]", "[][]"));
         

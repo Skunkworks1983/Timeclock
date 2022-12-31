@@ -4,12 +4,14 @@ import com.google.inject.Inject;
 import io.github.skunkworks1983.timeclock.controller.SignInController;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.PinStore;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
@@ -35,11 +37,13 @@ public class PinCreationWindow extends JFrame
         pinField = new JPasswordField();
         
         setAutoRequestFocus(true);
+    
+        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-        
-        add(promptText);
-        add(pinField);
+        setLayout(new MigLayout("", "[grow]", "[][]"));
+    
+        add(promptText, "cell 0 0, grow");
+        add(pinField, "cell 0 1, grow");
         
         pack();
         setLocationRelativeTo(null);
