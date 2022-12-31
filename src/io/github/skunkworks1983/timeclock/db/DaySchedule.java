@@ -5,8 +5,8 @@ import java.util.Objects;
 
 public class DaySchedule
 {
-    private LocalTime start;
-    private LocalTime end;
+    private final LocalTime start;
+    private final LocalTime end;
     
     public DaySchedule(String startTime, String endTime)
     {

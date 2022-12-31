@@ -1,6 +1,5 @@
 package io.github.skunkworks1983.timeclock.ui;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import io.github.skunkworks1983.timeclock.controller.SessionController;
 import io.github.skunkworks1983.timeclock.db.Member;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 
 public class MemberList extends JList<Member>
 {
-    private MemberStore memberStore;
+    private final MemberStore memberStore;
     
     private Consumer<Member> selectionCallback;
     private Set<Role> roleFilter = Arrays.stream(Role.values()).collect(Collectors.toSet());
@@ -134,7 +133,7 @@ public class MemberList extends JList<Member>
     
     private static class MemberListCellRenderer implements ListCellRenderer<Member>
     {
-        private SessionController sessionController;
+        private final SessionController sessionController;
         
         public MemberListCellRenderer(SessionController sessionController)
         {

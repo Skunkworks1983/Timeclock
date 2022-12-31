@@ -14,7 +14,7 @@ public class HashUtil
         CharBuffer pinBuffer = CharBuffer.wrap(pin);
         byte[] hash = digest.digest(Charset.defaultCharset().encode(pinBuffer).array());
         StringBuilder hashBuilder = new StringBuilder();
-        for(byte b: hash)
+        for(byte b : hash)
         {
             hashBuilder.append(String.format("%02x", b));
         }

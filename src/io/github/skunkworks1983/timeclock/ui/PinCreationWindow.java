@@ -18,15 +18,17 @@ import java.util.Arrays;
 
 public class PinCreationWindow extends JFrame
 {
+    private final JLabel promptText;
+    private final JPasswordField pinField;
+    
     private Member currentMember;
-    private JLabel promptText;
-    private JPasswordField pinField;
     
     @Inject
-    public PinCreationWindow(SignInController signInController, AlertWindow alertWindow, MainListRefresher refresher) throws HeadlessException
+    public PinCreationWindow(SignInController signInController, AlertWindow alertWindow,
+                             MainListRefresher refresher) throws HeadlessException
     {
         super("Enter PIN");
-    
+        
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
         promptText = new JLabel("No member set");
@@ -43,7 +45,8 @@ public class PinCreationWindow extends JFrame
         setLocationRelativeTo(null);
         setVisible(false);
         
-        addWindowFocusListener(new WindowFocusListener() {
+        addWindowFocusListener(new WindowFocusListener()
+        {
             @Override
             public void windowGainedFocus(WindowEvent e)
             {
@@ -57,7 +60,8 @@ public class PinCreationWindow extends JFrame
             }
         });
         
-        pinField.addKeyListener(new KeyListener() {
+        pinField.addKeyListener(new KeyListener()
+        {
             private char[] pinChars = null;
             private char[] pinToSet = null;
             private boolean readyToClose = true;
@@ -89,7 +93,8 @@ public class PinCreationWindow extends JFrame
                             {
                                 Arrays.fill(pinToSet, (char) 0);
                                 pinToSet = null;
-                                alertWindow.showAlert(new AlertMessage(false, "Entered PINs do not match, please try again.", null));
+                                alertWindow.showAlert(
+                                        new AlertMessage(false, "Entered PINs do not match, please try again.", null));
                                 setCurrentMember(currentMember);
                             }
                         }
@@ -118,17 +123,22 @@ public class PinCreationWindow extends JFrame
                             }
                             else if(allNumbers)
                             {
-                                alertWindow.showAlert(new AlertMessage(false, "PIN cannot have the same number more than twice in a row, please try again.", null));
+                                alertWindow.showAlert(new AlertMessage(false,
+                                                                       "PIN cannot have the same number more than twice in a row, please try again.",
+                                                                       null));
                             }
                             else
                             {
-                                alertWindow.showAlert(new AlertMessage(false, "PIN may only contain numbers, please try again.", null));
+                                alertWindow.showAlert(
+                                        new AlertMessage(false, "PIN may only contain numbers, please try again.",
+                                                         null));
                             }
                         }
                     }
                     else
                     {
-                        alertWindow.showAlert(new AlertMessage(false, "PIN must be four digits, please try again.", null));
+                        alertWindow.showAlert(
+                                new AlertMessage(false, "PIN must be four digits, please try again.", null));
                         setCurrentMember(currentMember);
                         if(pinToSet != null)
                         {

@@ -24,9 +24,9 @@ import java.nio.file.Path;
 
 public class SessionController
 {
-    private SessionStore sessionStore;
-    private MemberStore memberStore;
-    private AWSCredentials awsCredentials;
+    private final SessionStore sessionStore;
+    private final MemberStore memberStore;
+    private final AWSCredentials awsCredentials;
     
     @Inject
     public SessionController(SessionStore sessionStore, MemberStore memberStore,

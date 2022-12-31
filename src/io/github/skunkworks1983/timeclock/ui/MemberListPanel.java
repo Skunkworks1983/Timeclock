@@ -10,7 +10,7 @@ import java.awt.KeyboardFocusManager;
 
 public class MemberListPanel extends JPanel
 {
-    private MemberList memberList;
+    private final MemberList memberList;
     
     @Inject
     public MemberListPanel(MemberList memberList)

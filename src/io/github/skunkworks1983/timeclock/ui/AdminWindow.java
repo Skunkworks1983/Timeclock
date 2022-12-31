@@ -19,22 +19,22 @@ import java.util.stream.Collectors;
 
 public class AdminWindow extends JFrame
 {
-    private AdminController adminController;
-    private SessionController sessionController;
-    private AlertWindow alertWindow;
-    private CreateMemberWindow createMemberWindow;
-    private MemberPickerWindow memberPickerWindow;
-    private PinCreationWindow pinCreationWindow;
-    private MainListRefresher mainListRefresher;
+    private final AdminController adminController;
+    private final SessionController sessionController;
+    private final AlertWindow alertWindow;
+    private final CreateMemberWindow createMemberWindow;
+    private final MemberPickerWindow memberPickerWindow;
+    private final PinCreationWindow pinCreationWindow;
+    private final MainListRefresher mainListRefresher;
     
-    private JLabel instructions;
-    private JPasswordField passwordField;
-    private JButton createMemberButton;
-    private JButton startScheduledSessionButton;
-    private JButton endSessionButton;
-    private JButton signMemberOutButton;
-    private JButton resetPinButton;
-    private JButton createAdminPinButton;
+    private final JLabel instructions;
+    private final JPasswordField passwordField;
+    private final JButton createMemberButton;
+    private final JButton startScheduledSessionButton;
+    private final JButton endSessionButton;
+    private final JButton signMemberOutButton;
+    private final JButton resetPinButton;
+    private final JButton createAdminPinButton;
     
     private boolean authenticated = false;
     
@@ -198,7 +198,9 @@ public class AdminWindow extends JFrame
     
     private void forceSignOut()
     {
-        memberPickerWindow.getMemberListPanel().getMemberList().setRoleFilter(Arrays.stream(Role.values()).collect(Collectors.toSet()));
+        memberPickerWindow.getMemberListPanel()
+                          .getMemberList()
+                          .setRoleFilter(Arrays.stream(Role.values()).collect(Collectors.toSet()));
         memberPickerWindow.getMemberListPanel().getMemberList().setSelectionCallback(member -> {
             alertWindow.showAlert(adminController.forceSignOut(member));
             memberPickerWindow.setVisible(false);

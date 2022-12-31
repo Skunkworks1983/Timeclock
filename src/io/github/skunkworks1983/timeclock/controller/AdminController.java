@@ -15,11 +15,11 @@ import java.util.UUID;
 public class AdminController
 {
     private static final String ADMIN_PASS_HASH = "90f745dc7b86d382ad653c96008ebff2466fc9262bcd9a3e22bad43f083da37c";
-    private static final byte[] ADMIN_PASS_SALT = { -49, -73, 42, -123 };
+    private static final byte[] ADMIN_PASS_SALT = {-49, -73, 42, -123};
     
-    private MemberStore memberStore;
-    private ScheduleStore scheduleStore;
-    private PinStore pinStore;
+    private final MemberStore memberStore;
+    private final ScheduleStore scheduleStore;
+    private final PinStore pinStore;
     
     @Inject
     public AdminController(MemberStore memberStore, ScheduleStore scheduleStore, PinStore pinStore)
@@ -63,12 +63,14 @@ public class AdminController
     public AlertMessage forceSignOut(Member member)
     {
         memberStore.signOut(member, true);
-        return new AlertMessage(true, String.format("Force signed out %s %s.", member.getFirstName(), member.getLastName()));
+        return new AlertMessage(true,
+                                String.format("Force signed out %s %s.", member.getFirstName(), member.getLastName()));
     }
     
     public AlertMessage resetPin(Member member)
     {
         pinStore.deletePin(member.getId());
-        return new AlertMessage(true, String.format("Cleared PIN for %s %s.", member.getFirstName(), member.getLastName()));
+        return new AlertMessage(true,
+                                String.format("Cleared PIN for %s %s.", member.getFirstName(), member.getLastName()));
     }
 }

@@ -22,7 +22,7 @@ public class PinStore
         try(Connection connection = DatabaseConnector.createConnection())
         {
             DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
-    
+            
             Result<Record2<byte[], String>> result = query.select(Pins.PINS.SALT, Pins.PINS.HASH)
                                                           .from(Pins.PINS)
                                                           .where(Pins.PINS.MEMBERID.eq(memberId.toString()))
@@ -88,13 +88,13 @@ public class PinStore
             SecureRandom rand = SecureRandom.getInstanceStrong();
             byte[] salt = new byte[4];
             rand.nextBytes(salt);
-        
+            
             String hash = HashUtil.computeHash(salt, pin);
-        
+            
             try(Connection connection = DatabaseConnector.createConnection())
             {
                 DSLContext query = DSL.using(connection, SQLDialect.SQLITE);
-            
+                
                 query.insertInto(Pins.PINS, Pins.PINS.MEMBERID, Pins.PINS.SALT, Pins.PINS.HASH)
                      .values(memberId.toString(), salt, hash)
                      .execute();
@@ -104,7 +104,7 @@ public class PinStore
                 System.err.println("Inserting PIN failed: " + e.getMessage());
                 return null;
             }
-        
+            
             return pin;
         }
         catch(NoSuchAlgorithmException e)
@@ -117,9 +117,11 @@ public class PinStore
     public void deletePin(UUID memberId)
     {
         DatabaseConnector.runQuery(query ->
-                                       {
-                                           query.deleteFrom(Pins.PINS).where(Pins.PINS.MEMBERID.eq(memberId.toString())).execute();
-                                           return null;
-                                       });
+                                   {
+                                       query.deleteFrom(Pins.PINS)
+                                            .where(Pins.PINS.MEMBERID.eq(memberId.toString()))
+                                            .execute();
+                                       return null;
+                                   });
     }
 }

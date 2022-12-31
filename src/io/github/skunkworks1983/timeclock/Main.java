@@ -3,7 +3,6 @@ package io.github.skunkworks1983.timeclock;
 import com.google.inject.Guice;
 import io.github.skunkworks1983.timeclock.controller.ControllerModule;
 import io.github.skunkworks1983.timeclock.db.DatabaseConnector;
-import io.github.skunkworks1983.timeclock.db.DatabaseModule;
 import io.github.skunkworks1983.timeclock.ui.MainWindow;
 import io.github.skunkworks1983.timeclock.ui.UiModule;
 
@@ -32,7 +31,7 @@ public class Main
                 }
             }
         }
-    
+        
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         UIManager.put("Label.font", new Font(null, Font.PLAIN, 20));
         UIManager.put("Button.font", new Font(null, Font.PLAIN, 20));

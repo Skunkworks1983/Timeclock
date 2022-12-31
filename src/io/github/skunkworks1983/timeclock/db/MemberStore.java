@@ -14,15 +14,14 @@ public class MemberStore
     public List<Member> getMembers()
     {
         List<Member> memberList = DatabaseConnector
-                .runQuery(query ->
-                              {
-                                  List<Member> members = query.selectFrom(Members.MEMBERS)
-                                                              .orderBy(Members.MEMBERS.LASTNAME.asc(),
-                                                                       Members.MEMBERS.FIRSTNAME.asc())
-                                                              .fetch()
-                                                              .into(Member.class);
-                                  return members;
-                              });
+                .runQuery(query -> {
+                    List<Member> members = query.selectFrom(Members.MEMBERS)
+                                                .orderBy(Members.MEMBERS.LASTNAME.asc(),
+                                                         Members.MEMBERS.FIRSTNAME.asc())
+                                                .fetch()
+                                                .into(Member.class);
+                    return members;
+                });
         
         return memberList;
     }
@@ -39,16 +38,15 @@ public class MemberStore
             member.setLastSignIn(signInTime);
             member.setSignedIn(true);
             
-            DatabaseConnector.runQuery(query ->
-                                           {
-                                               query.update(Members.MEMBERS)
-                                                    .set(Members.MEMBERS.LASTSIGNEDIN, member.getLastSignIn())
-                                                    .set(Members.MEMBERS.ISSIGNEDIN, 1)
-                                                    .where(Members.MEMBERS.ID.eq(member.getId().toString()))
-                                                    .execute();
-                                               
-                                               return null;
-                                           });
+            DatabaseConnector.runQuery(query -> {
+                query.update(Members.MEMBERS)
+                     .set(Members.MEMBERS.LASTSIGNEDIN, member.getLastSignIn())
+                     .set(Members.MEMBERS.ISSIGNEDIN, 1)
+                     .where(Members.MEMBERS.ID.eq(member.getId().toString()))
+                     .execute();
+                
+                return null;
+            });
         }
     }
     
@@ -59,7 +57,7 @@ public class MemberStore
     
     public void signOut(Member member, boolean force)
     {
-
+        
         if(member.isSignedIn())
         {
             long memberTimeSec = TimeUtil.convertHourToSec(member.getHours());
@@ -76,17 +74,16 @@ public class MemberStore
             memberTimeSec = Math.max(memberTimeSec, 0);
             member.setHours(TimeUtil.convertSecToHour(memberTimeSec));
             member.setSignedIn(false);
-    
-            DatabaseConnector.runQuery(query ->
-                                           {
-                                               query.update(Members.MEMBERS)
-                                                    .set(Members.MEMBERS.HOURS, (float)member.getHours())
-                                                    .set(Members.MEMBERS.ISSIGNEDIN, 0)
-                                                    .where(Members.MEMBERS.ID.eq(member.getId().toString()))
-                                                    .execute();
             
-                                               return null;
-                                           });
+            DatabaseConnector.runQuery(query -> {
+                query.update(Members.MEMBERS)
+                     .set(Members.MEMBERS.HOURS, (float) member.getHours())
+                     .set(Members.MEMBERS.ISSIGNEDIN, 0)
+                     .where(Members.MEMBERS.ID.eq(member.getId().toString()))
+                     .execute();
+                
+                return null;
+            });
         }
     }
     

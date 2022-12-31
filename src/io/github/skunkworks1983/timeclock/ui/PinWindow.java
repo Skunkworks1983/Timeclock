@@ -18,15 +18,17 @@ import java.util.Arrays;
 
 public class PinWindow extends JFrame
 {
+    private final JLabel promptText;
+    private final JPasswordField pinField;
+    
     private Member currentMember;
-    private JLabel promptText;
-    private JPasswordField pinField;
     
     @Inject
-    public PinWindow(SignInController signInController, AlertWindow alertWindow, MainListRefresher refresher) throws HeadlessException
+    public PinWindow(SignInController signInController, AlertWindow alertWindow, MainListRefresher refresher) throws
+                                                                                                              HeadlessException
     {
         super("Enter PIN");
-    
+        
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
         promptText = new JLabel("No member set");
@@ -43,21 +45,23 @@ public class PinWindow extends JFrame
         setLocationRelativeTo(null);
         setVisible(false);
         
-        addWindowFocusListener(new WindowFocusListener() {
+        addWindowFocusListener(new WindowFocusListener()
+        {
             @Override
             public void windowGainedFocus(WindowEvent e)
             {
                 pinField.grabFocus();
             }
-    
+            
             @Override
             public void windowLostFocus(WindowEvent e)
             {
-        
+            
             }
         });
         
-        pinField.addKeyListener(new KeyListener() {
+        pinField.addKeyListener(new KeyListener()
+        {
             private boolean readyToClose = true;
             
             @Override
@@ -68,7 +72,8 @@ public class PinWindow extends JFrame
                     char[] pinChars = pinField.getPassword();
                     if(pinChars.length == PinStore.PIN_LENGTH)
                     {
-                        AlertMessage alert = signInController.handleSignIn(currentMember, !currentMember.isSignedIn(), pinChars);
+                        AlertMessage alert = signInController.handleSignIn(currentMember, !currentMember.isSignedIn(),
+                                                                           pinChars);
                         alertWindow.showAlert(alert);
                         if(alert.isSuccess())
                         {
@@ -97,17 +102,17 @@ public class PinWindow extends JFrame
                     readyToClose = false;
                 }
             }
-    
+            
             @Override
             public void keyPressed(KeyEvent e)
             {
-        
+            
             }
-    
+            
             @Override
             public void keyReleased(KeyEvent e)
             {
-        
+            
             }
         });
     }

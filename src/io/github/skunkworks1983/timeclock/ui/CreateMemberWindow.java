@@ -16,13 +16,13 @@ import java.awt.event.ActionListener;
 
 public class CreateMemberWindow extends JFrame
 {
-    private JLabel roleLabel;
-    private JComboBox<Role> roleDropdown;
-    private JLabel firstNameLabel;
-    private JTextField firstNameField;
-    private JLabel lastNameLabel;
-    private JTextField lastNameField;
-    private JButton okButton;
+    private final JLabel roleLabel;
+    private final JComboBox<Role> roleDropdown;
+    private final JLabel firstNameLabel;
+    private final JTextField firstNameField;
+    private final JLabel lastNameLabel;
+    private final JTextField lastNameField;
+    private final JButton okButton;
     
     @Inject
     public CreateMemberWindow(AdminController adminController, AlertWindow alertWindow, MainListRefresher refresher)
@@ -50,22 +50,24 @@ public class CreateMemberWindow extends JFrame
         add(lastNameLabel, "cell 0 4, grow");
         add(lastNameField, "cell 0 5, grow");
         add(okButton, "cell 0 6, grow");
-    
+        
         pack();
         setLocationRelativeTo(null);
         
-        okButton.addActionListener(new ActionListener() {
+        okButton.addActionListener(new ActionListener()
+        {
             @Override
             public void actionPerformed(ActionEvent e)
             {
-    
+                
                 Role role = (Role) roleDropdown.getSelectedItem();
                 String firstName = firstNameField.getText();
                 String lastName = lastNameField.getText();
                 if(role != null && firstName != null && !firstName.isBlank() && lastName != null && !lastName.isBlank())
                 {
                     AlertMessage alertMessage = adminController.createMember(role, firstName, lastName);
-                    alertWindow.showAlert(new AlertMessage(alertMessage.isSuccess(), alertMessage.getMessage(), refresher::refresh));
+                    alertWindow.showAlert(
+                            new AlertMessage(alertMessage.isSuccess(), alertMessage.getMessage(), refresher::refresh));
                     setVisible(false);
                 }
                 else

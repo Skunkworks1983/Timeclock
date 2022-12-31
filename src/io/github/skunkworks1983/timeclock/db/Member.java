@@ -5,10 +5,10 @@ import java.util.UUID;
 
 public class Member
 {
-    private UUID id;
-    private Role role;
-    private String firstName;
-    private String lastName;
+    private final UUID id;
+    private final Role role;
+    private final String firstName;
+    private final String lastName;
     private double hours;
     private long lastSignIn;
     private boolean isSignedIn;

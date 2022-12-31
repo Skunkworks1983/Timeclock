@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class MemberPickerWindow extends JFrame
 {
-    private MemberListPanel memberListPanel;
+    private final MemberListPanel memberListPanel;
     
     @Inject
     public MemberPickerWindow(MemberListPanel memberListPanel) throws HeadlessException

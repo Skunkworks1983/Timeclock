@@ -11,14 +11,15 @@ import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
 /**
  * Convenience access to all tables in the default schema.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class Tables {
-
+@SuppressWarnings({"all", "unchecked", "rawtypes"})
+public class Tables
+{
+    
     /**
      * The table <code>members</code>.
      */
     public static final Members MEMBERS = Members.MEMBERS;
-
+    
     /**
      * The table <code>pins</code>.
      */

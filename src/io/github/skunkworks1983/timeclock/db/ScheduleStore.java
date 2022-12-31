@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class ScheduleStore
 {
-    private Map<DayOfWeek, DaySchedule> scheduleMap;
+    private final Map<DayOfWeek, DaySchedule> scheduleMap;
     
     @Inject
     public ScheduleStore()
@@ -34,7 +34,8 @@ public class ScheduleStore
         // if the given interval doesn't overlap with the schedule, skip the math and return 0
         // if session goes past midnight, end's time will be before start's, so check the date too
         if(!(start.toLocalTime().isBefore(daySchedule.getEnd())
-        && (end.toLocalDate().isAfter(start.toLocalDate()) || end.toLocalTime().isAfter(daySchedule.getStart()))))
+                && (end.toLocalDate().isAfter(start.toLocalDate()) || end.toLocalTime()
+                                                                         .isAfter(daySchedule.getStart()))))
         {
             return 0;
         }
@@ -43,15 +44,19 @@ public class ScheduleStore
         LocalDateTime intervalEnd = LocalDateTime.from(end);
         if(start.toLocalTime().isBefore(daySchedule.getStart()))
         {
-            intervalStart = intervalStart.withHour(daySchedule.getStart().getHour()).withMinute(daySchedule.getStart().getMinute()).withSecond(0);
+            intervalStart = intervalStart.withHour(daySchedule.getStart().getHour())
+                                         .withMinute(daySchedule.getStart().getMinute())
+                                         .withSecond(0);
         }
         
         if(end.toLocalDate().isAfter(start.toLocalDate()) || end.toLocalTime().isAfter(daySchedule.getEnd()))
         {
-            intervalEnd = intervalEnd.withHour(daySchedule.getEnd().getHour()).withMinute(daySchedule.getEnd().getMinute()).withSecond(0);
+            intervalEnd = intervalEnd.withHour(daySchedule.getEnd().getHour())
+                                     .withMinute(daySchedule.getEnd().getMinute())
+                                     .withSecond(0);
         }
         
-        return Duration.between(intervalStart, intervalEnd).getSeconds()/3600.;
+        return Duration.between(intervalStart, intervalEnd).getSeconds() / 3600.;
     }
     
     public DaySchedule getSchedule()

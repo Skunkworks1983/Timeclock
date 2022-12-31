@@ -3,7 +3,6 @@ package io.github.skunkworks1983.timeclock.db;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
 
 public class TimeUtil
 {
@@ -27,11 +26,11 @@ public class TimeUtil
     
     public static double convertSecToHour(long seconds)
     {
-        return seconds/(60. * 60);
+        return seconds / (60. * 60);
     }
     
     public static long convertHourToSec(double hours)
     {
-        return (long)(hours * 60 * 60);
+        return (long) (hours * 60 * 60);
     }
 }

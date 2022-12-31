@@ -11,10 +11,10 @@ import io.github.skunkworks1983.timeclock.ui.AlertMessage;
 
 public class SignInController
 {
-    private PinStore pinStore;
-    private MemberStore memberStore;
-    private SessionStore sessionStore;
-    private SessionController sessionController;
+    private final PinStore pinStore;
+    private final MemberStore memberStore;
+    private final SessionStore sessionStore;
+    private final SessionController sessionController;
     
     @Inject
     public SignInController(PinStore pinStore, MemberStore memberStore, SessionStore sessionStore,

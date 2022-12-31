@@ -2,9 +2,9 @@ package io.github.skunkworks1983.timeclock.ui;
 
 public class AlertMessage
 {
-    private boolean success;
-    private String message;
-    private Runnable okButtonCallback;
+    private final boolean success;
+    private final String message;
+    private final Runnable okButtonCallback;
     
     public AlertMessage(boolean success, String message)
     {
