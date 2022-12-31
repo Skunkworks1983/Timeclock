@@ -7,6 +7,6 @@ public class UiModule extends AbstractModule
     @Override
     protected void configure()
     {
-        // TODO bindings here
+        bind(MainListRefresher.class).to(MainWindow.class);
     }
 }

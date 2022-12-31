@@ -14,13 +14,16 @@ public class SignInController
     private PinStore pinStore;
     private MemberStore memberStore;
     private SessionStore sessionStore;
+    private SessionController sessionController;
     
     @Inject
-    public SignInController(PinStore pinStore, MemberStore memberStore, SessionStore sessionStore)
+    public SignInController(PinStore pinStore, MemberStore memberStore, SessionStore sessionStore,
+                            SessionController sessionController)
     {
         this.pinStore = pinStore;
         this.memberStore = memberStore;
         this.sessionStore = sessionStore;
+        this.sessionController = sessionController;
     }
     
     public AlertMessage handleSignIn(Member member, boolean signingIn, char[] pin)
@@ -33,6 +36,7 @@ public class SignInController
             {
                 if(pinStore.checkPin(member.getId(), pin))
                 {
+                    long queuedSessionStart = sessionStore.getQueuedSessionStart();
                     if(isSessionActive)
                     {
                         if(signingIn)
@@ -44,6 +48,13 @@ public class SignInController
                             memberStore.signOut(member);
                         }
                         return new AlertMessage(true, null);
+                    }
+                    else if(signingIn && queuedSessionStart != 0)
+                    {
+                        memberStore.signIn(member, queuedSessionStart);
+                        return new AlertMessage(true, String.format("%s %s signed in for meeting starting at %s.",
+                                                                    member.getFirstName(), member.getLastName(),
+                                                                    TimeUtil.formatTime(queuedSessionStart)));
                     }
                     else
                     {
@@ -65,11 +76,7 @@ public class SignInController
                         memberStore.signIn(member);
                         if(!isSessionActive)
                         {
-                            sessionStore.startSession(member, false);
-                            return new AlertMessage(true, String.format("Session started by %s %s at %s.",
-                                                                        member.getFirstName(), member.getLastName(),
-                                                                        TimeUtil.formatTime(
-                                                                                TimeUtil.getCurrentTimestamp())));
+                            return sessionController.startSession(member, false);
                         }
                         return new AlertMessage(true, null);
                     }
@@ -82,21 +89,7 @@ public class SignInController
                                                                                 .equals(Role.ADMIN) && m.isSignedIn());
                         if(!isAnyAdminSignedIn)
                         {
-                            int membersSignedOut = 0;
-                            for(Member memberToSignOut: memberStore.getMembers())
-                            {
-                                if(memberToSignOut.isSignedIn())
-                                {
-                                    membersSignedOut++;
-                                    memberStore.signOut(memberToSignOut, true);
-                                }
-                            }
-                            
-                            sessionStore.endSession(member);
-                            return new AlertMessage(true, String.format("Session ended by %s %s at %s; %d member(s) force signed out.",
-                                                                        member.getFirstName(), member.getLastName(),
-                                                                        TimeUtil.formatTime(TimeUtil.getCurrentTimestamp()),
-                                                                        membersSignedOut));
+                            return sessionController.endSession(member);
                         }
                         return new AlertMessage(true, null);
                     }
@@ -107,21 +100,24 @@ public class SignInController
                                                                  member.getLastName()));
                 }
             }
-
+            
         }
-
-        return new AlertMessage(false, String.format("No PIN set for %s %s. Please set your PIN before attempting to sign in.", member.getFirstName(), member.getLastName()));
+        
+        return new AlertMessage(false,
+                                String.format("No PIN set for %s %s. Please set your PIN before attempting to sign in.",
+                                              member.getFirstName(), member.getLastName()));
     }
     
     public boolean shouldCreatePin(Member member)
     {
-        // TODO uncomment when admin panel exists
-        return /*!member.getRole().equals(Role.ADMIN) &&*/ !pinStore.doesPinExist(member.getId());
+        return !member.getRole().equals(Role.ADMIN) && !pinStore.doesPinExist(member.getId());
     }
     
     public AlertMessage createPin(Member member, char[] pin)
     {
         pinStore.createPin(member.getId(), pin);
-        return new AlertMessage(true, String.format("PIN set for %s %s. Please memorize your PIN and don't share it with anyone. If you forget your PIN, a coach can reset it, but it can't be retrieved for you.", member.getFirstName(), member.getLastName()));
+        return new AlertMessage(true, String.format(
+                "PIN set for %s %s. Please memorize your PIN and don't share it with anyone. If you forget your PIN, a coach can reset it, but it can't be retrieved for you.",
+                member.getFirstName(), member.getLastName()));
     }
 }

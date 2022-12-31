@@ -1,13 +1,12 @@
 package io.github.skunkworks1983.timeclock.ui;
 
 import com.google.inject.Inject;
-import io.github.skunkworks1983.timeclock.db.TimeUtil;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import java.awt.Font;
+import java.awt.KeyboardFocusManager;
 
 public class MemberListPanel extends JPanel
 {
@@ -36,5 +35,35 @@ public class MemberListPanel extends JPanel
         
         add(headerPanel, "cell 0 0, growx");
         add(scrollPane, "cell 0 1, grow");
+        
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            if(MemberListPanel.this.isVisible() && MemberListPanel.this.getMemberList().hasFocus())
+            {
+                if(e.getKeyCode() == 107) // magic number for numpad +
+                {
+                    int scrollValue = scrollPane.getVerticalScrollBar().getValue();
+                    int delta = Math.max(
+                            (scrollPane.getVerticalScrollBar().getMaximum() - scrollPane.getVerticalScrollBar()
+                                                                                        .getMinimum()) / 50, 1);
+                    scrollValue = Math.min(scrollValue + delta, scrollPane.getVerticalScrollBar().getMaximum());
+                    scrollPane.getVerticalScrollBar().setValue(scrollValue);
+                }
+                else if(e.getKeyCode() == 109)
+                {
+                    int scrollValue = scrollPane.getVerticalScrollBar().getValue();
+                    int delta = Math.max(
+                            (scrollPane.getVerticalScrollBar().getMaximum() - scrollPane.getVerticalScrollBar()
+                                                                                        .getMinimum()) / 50, 1);
+                    scrollValue = Math.max(scrollValue - delta, scrollPane.getVerticalScrollBar().getMinimum());
+                    scrollPane.getVerticalScrollBar().setValue(scrollValue);
+                }
+            }
+            return false;
+        });
+    }
+    
+    public MemberList getMemberList()
+    {
+        return memberList;
     }
 }

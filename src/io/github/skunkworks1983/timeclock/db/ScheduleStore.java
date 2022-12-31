@@ -43,14 +43,24 @@ public class ScheduleStore
         LocalDateTime intervalEnd = LocalDateTime.from(end);
         if(start.toLocalTime().isBefore(daySchedule.getStart()))
         {
-            intervalStart = intervalStart.withHour(daySchedule.getStart().getHour()).withMinute(daySchedule.getStart().getMinute());
+            intervalStart = intervalStart.withHour(daySchedule.getStart().getHour()).withMinute(daySchedule.getStart().getMinute()).withSecond(0);
         }
         
         if(end.toLocalDate().isAfter(start.toLocalDate()) || end.toLocalTime().isAfter(daySchedule.getEnd()))
         {
-            intervalEnd = intervalEnd.withHour(daySchedule.getEnd().getHour()).withMinute(daySchedule.getEnd().getMinute());
+            intervalEnd = intervalEnd.withHour(daySchedule.getEnd().getHour()).withMinute(daySchedule.getEnd().getMinute()).withSecond(0);
         }
         
         return Duration.between(intervalStart, intervalEnd).getSeconds()/3600.;
+    }
+    
+    public DaySchedule getSchedule()
+    {
+        return getSchedule(LocalDateTime.now());
+    }
+    
+    public DaySchedule getSchedule(LocalDateTime date)
+    {
+        return scheduleMap.get(date.getDayOfWeek());
     }
 }

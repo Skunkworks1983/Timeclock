@@ -7,9 +7,6 @@ import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.Connection;
@@ -33,7 +30,7 @@ public class PinStore
             if(result.isNotEmpty())
             {
                 byte[] salt = result.getValues(Pins.PINS.SALT).get(0);
-                return result.getValues(Pins.PINS.HASH).get(0).equals(computeHash(salt, pin));
+                return result.getValues(Pins.PINS.HASH).get(0).equals(HashUtil.computeHash(salt, pin));
             }
             
             System.err.println("No PIN found");
@@ -92,7 +89,7 @@ public class PinStore
             byte[] salt = new byte[4];
             rand.nextBytes(salt);
         
-            String hash = computeHash(salt, pin);
+            String hash = HashUtil.computeHash(salt, pin);
         
             try(Connection connection = DatabaseConnector.createConnection())
             {
@@ -117,17 +114,12 @@ public class PinStore
         }
     }
     
-    private String computeHash(byte[] salt, char[] pin) throws NoSuchAlgorithmException
+    public void deletePin(UUID memberId)
     {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        digest.update(salt);
-        CharBuffer pinBuffer = CharBuffer.wrap(pin);
-        byte[] hash = digest.digest(Charset.defaultCharset().encode(pinBuffer).array());
-        StringBuilder hashBuilder = new StringBuilder();
-        for(byte b: hash)
-        {
-            hashBuilder.append(String.format("%02x", b));
-        }
-        return hashBuilder.toString();
+        DatabaseConnector.runQuery(query ->
+                                       {
+                                           query.deleteFrom(Pins.PINS).where(Pins.PINS.MEMBERID.eq(memberId.toString())).execute();
+                                           return null;
+                                       });
     }
 }

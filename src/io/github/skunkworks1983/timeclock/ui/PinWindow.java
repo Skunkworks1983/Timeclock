@@ -22,12 +22,12 @@ public class PinWindow extends JFrame
     private JLabel promptText;
     private JPasswordField pinField;
     
-    private Runnable successCallback;
-    
     @Inject
-    public PinWindow(SignInController signInController, AlertWindow alertWindow) throws HeadlessException
+    public PinWindow(SignInController signInController, AlertWindow alertWindow, MainListRefresher refresher) throws HeadlessException
     {
         super("Enter PIN");
+    
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
         promptText = new JLabel("No member set");
         pinField = new JPasswordField();
@@ -73,7 +73,7 @@ public class PinWindow extends JFrame
                         if(alert.isSuccess())
                         {
                             setVisible(false);
-                            successCallback.run();
+                            refresher.refresh();
                         }
                     }
                     Arrays.fill(pinChars, (char) 0);
@@ -118,10 +118,5 @@ public class PinWindow extends JFrame
         promptText.setText(String.format("Enter pin for %s %s (backspace to return to menu without signing in):",
                                          currentMember.getFirstName(), currentMember.getLastName()));
         pack();
-    }
-    
-    public void setSuccessCallback(Runnable successCallback)
-    {
-        this.successCallback = successCallback;
     }
 }

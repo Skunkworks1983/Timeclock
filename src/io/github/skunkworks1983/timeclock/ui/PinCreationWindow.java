@@ -22,12 +22,12 @@ public class PinCreationWindow extends JFrame
     private JLabel promptText;
     private JPasswordField pinField;
     
-    private Runnable successCallback;
-    
     @Inject
-    public PinCreationWindow(SignInController signInController, AlertWindow alertWindow) throws HeadlessException
+    public PinCreationWindow(SignInController signInController, AlertWindow alertWindow, MainListRefresher refresher) throws HeadlessException
     {
         super("Enter PIN");
+    
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
         promptText = new JLabel("No member set");
         pinField = new JPasswordField();
@@ -83,7 +83,7 @@ public class PinCreationWindow extends JFrame
                                 Arrays.fill(pinToSet, (char) 0);
                                 pinToSet = null;
                                 setVisible(false);
-                                successCallback.run();
+                                refresher.refresh();
                             }
                             else
                             {
@@ -182,10 +182,5 @@ public class PinCreationWindow extends JFrame
         promptText.setText(String.format("Enter PIN for %s %s (backspace to return to menu without creating PIN):",
                                          currentMember.getFirstName(), currentMember.getLastName()));
         pack();
-    }
-    
-    public void setSuccessCallback(Runnable successCallback)
-    {
-        this.successCallback = successCallback;
     }
 }

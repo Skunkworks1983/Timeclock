@@ -3,7 +3,6 @@ package io.github.skunkworks1983.timeclock.db;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class MemberStore
@@ -30,9 +29,14 @@ public class MemberStore
     
     public void signIn(Member member)
     {
+        signIn(member, TimeUtil.getCurrentTimestamp());
+    }
+    
+    public void signIn(Member member, long signInTime)
+    {
         if(!member.isSignedIn())
         {
-            member.setLastSignIn(TimeUtil.getCurrentTimestamp());
+            member.setLastSignIn(signInTime);
             member.setSignedIn(true);
             
             DatabaseConnector.runQuery(query ->
@@ -67,6 +71,8 @@ public class MemberStore
             {
                 memberTimeSec += TimeUtil.getCurrentTimestamp() - member.getLastSignIn();
             }
+            
+            memberTimeSec = Math.max(memberTimeSec, 0);
             member.setHours(TimeUtil.convertSecToHour(memberTimeSec));
             member.setSignedIn(false);
     
@@ -81,5 +87,10 @@ public class MemberStore
                                                return null;
                                            });
         }
+    }
+    
+    public boolean createMember(Member member)
+    {
+        return DatabaseConnector.runQuery(query -> query.executeInsert(query.newRecord(Members.MEMBERS, member))) > 0;
     }
 }

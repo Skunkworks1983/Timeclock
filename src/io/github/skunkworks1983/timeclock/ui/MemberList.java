@@ -1,10 +1,11 @@
 package io.github.skunkworks1983.timeclock.ui;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import io.github.skunkworks1983.timeclock.controller.SessionController;
-import io.github.skunkworks1983.timeclock.controller.SignInController;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
+import io.github.skunkworks1983.timeclock.db.Role;
 import io.github.skunkworks1983.timeclock.db.TimeUtil;
 import net.miginfocom.swing.MigLayout;
 
@@ -13,23 +14,30 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
-import javax.swing.UIManager;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class MemberList extends JList<Member>
 {
+    private MemberStore memberStore;
+    
+    private Consumer<Member> selectionCallback;
+    private Set<Role> roleFilter = Arrays.stream(Role.values()).collect(Collectors.toSet());
+    
     @Inject
-    public MemberList(MemberStore memberStore, SignInController signInController, SessionController sessionController,
-                      PinWindow pinWindow, PinCreationWindow pinCreationWindow, AlertWindow alertWindow)
+    public MemberList(MemberStore memberStore, SessionController sessionController)
     {
         super();
         
-        setListData(memberStore.getMembers().toArray(new Member[0]));
+        this.memberStore = memberStore;
+        
         setCellRenderer(new MemberListCellRenderer(sessionController));
         
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -42,9 +50,20 @@ public class MemberList extends JList<Member>
             @Override
             public void keyTyped(KeyEvent e)
             {
+                boolean bufferUpdated = false;
                 if('0' <= e.getKeyChar() && e.getKeyChar() <= '9')
                 {
                     buffer += e.getKeyChar();
+                    bufferUpdated = true;
+                }
+                else if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE && !buffer.isEmpty())
+                {
+                    buffer = buffer.substring(0, buffer.length() - 1);
+                    bufferUpdated = true;
+                }
+                
+                if(bufferUpdated)
+                {
                     System.out.println("buffer " + buffer);
                     if(!buffer.isBlank())
                     {
@@ -59,46 +78,23 @@ public class MemberList extends JList<Member>
                             clearSelection();
                         }
                     }
-                }
-                else if(e.getKeyChar() == '\n')
-                {
-                    System.out.println("enter");
-                    clearSelection();
-                    if(!buffer.isBlank())
-                    {
-                        int selection = Integer.parseInt(buffer);
-                        if(0 < selection && selection <= getModel().getSize())
-                        {
-                            selection -= 1;
-                            setSelectedIndex(selection);
-                            System.out.println("selecting " + selection);
-                            Member selectedMember = getSelectedValue();
-                            if(signInController.shouldCreatePin(selectedMember))
-                            {
-                                alertWindow.showAlert(new AlertMessage(false,
-                                                                       "You haven't set a PIN yet. Please set a four-digit PIN to sign in and out with on the next screen. Your PIN may not contain the same number more than two times in a row.",
-                                                                       () ->
-                                    {
-                                        pinCreationWindow.setCurrentMember(selectedMember);
-                                        pinCreationWindow.setSuccessCallback(() -> setListData(memberStore.getMembers().toArray(new Member[0])));
-                                        pinCreationWindow.setVisible(true);
-                                    }));
-                            }
-                            else
-                            {
-                                pinWindow.setCurrentMember(selectedMember);
-                                pinWindow.setSuccessCallback(() -> setListData(memberStore.getMembers().toArray(new Member[0])));
-                                pinWindow.setVisible(true);
-                            }
-                        }
-                        else
-                        {
-                            clearSelection();
-                        }
-                    }
                     else
                     {
                         clearSelection();
+                    }
+                }
+                
+                if(e.getKeyChar() == '\n')
+                {
+                    System.out.println("enter");
+                    if(getSelectedIndex() != -1)
+                    {
+                        System.out.println("selecting " + getSelectedIndex());
+                        Member selectedMember = getSelectedValue();
+                        if(selectionCallback != null)
+                        {
+                            selectionCallback.accept(selectedMember);
+                        }
                     }
                     buffer = "";
                 }
@@ -118,15 +114,33 @@ public class MemberList extends JList<Member>
         });
     }
     
+    public void setSelectionCallback(Consumer<Member> selectionCallback)
+    {
+        this.selectionCallback = selectionCallback;
+    }
+    
+    public void setRoleFilter(Set<Role> roleFilter)
+    {
+        this.roleFilter = roleFilter;
+    }
+    
+    public void updateListModel()
+    {
+        setListData(memberStore.getMembers()
+                               .stream()
+                               .filter(member -> roleFilter.contains(member.getRole()))
+                               .toArray(Member[]::new));
+    }
+    
     private static class MemberListCellRenderer implements ListCellRenderer<Member>
     {
         private SessionController sessionController;
-    
+        
         public MemberListCellRenderer(SessionController sessionController)
         {
             this.sessionController = sessionController;
         }
-    
+        
         @Override
         public Component getListCellRendererComponent(JList<? extends Member> list, Member value, int index,
                                                       boolean isSelected, boolean cellHasFocus)
@@ -139,7 +153,8 @@ public class MemberList extends JList<Member>
             JLabel signInTime = new JLabel(value.isSignedIn()
                                                    ? TimeUtil.formatTime(value.getLastSignIn())
                                                    : "Signed out");
-            JLabel requirementMet = new JLabel(String.format("%3.1f/%3.1f", value.getHours(), 0.8 * sessionController.calculateScheduledHours()));
+            JLabel requirementMet = new JLabel(
+                    String.format("%3.1f/%3.1f", value.getHours(), 0.8 * sessionController.calculateScheduledHours()));
             
             rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150][grow][250][100]", "[24!]"));
             

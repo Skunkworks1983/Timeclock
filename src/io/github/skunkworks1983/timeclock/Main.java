@@ -3,6 +3,7 @@ package io.github.skunkworks1983.timeclock;
 import com.google.inject.Guice;
 import io.github.skunkworks1983.timeclock.db.DatabaseConnector;
 import io.github.skunkworks1983.timeclock.ui.MainWindow;
+import io.github.skunkworks1983.timeclock.ui.UiModule;
 
 import javax.swing.UIManager;
 import java.awt.Font;
@@ -23,8 +24,11 @@ public class Main
     
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         UIManager.put("Label.font", new Font(null, Font.PLAIN, 20));
+        UIManager.put("Button.font", new Font(null, Font.PLAIN, 20));
+        UIManager.put("TextField.font", new Font(null, Font.PLAIN, 20));
+        UIManager.put("ComboBox.font", new Font(null, Font.PLAIN, 20));
         UIManager.put("PasswordField.font", new Font(null, Font.PLAIN, 20));
         
-        Guice.createInjector().getInstance(MainWindow.class).prepare();
+        Guice.createInjector(new UiModule()).getInstance(MainWindow.class).prepare();
     }
 }

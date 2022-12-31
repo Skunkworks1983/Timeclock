@@ -1,5 +1,7 @@
 package io.github.skunkworks1983.timeclock.ui;
 
+import net.miginfocom.swing.MigLayout;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -20,6 +22,11 @@ public class AlertWindow extends JFrame
     {
         messageLabel = new JLabel();
         okButton = new JButton("OK");
+    
+        setLayout(new MigLayout("", "[grow]", "[][]"));
+    
+        add(messageLabel, "cell 0 0, grow");
+        add(okButton, "cell 0 1, center");
         
         okButton.addActionListener(new ActionListener() {
             @Override
@@ -49,11 +56,6 @@ public class AlertWindow extends JFrame
     
         setAlwaysOnTop(true);
         setAutoRequestFocus(true);
-        
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-        
-        add(messageLabel);
-        add(okButton);
     }
     
     public void showAlert(AlertMessage message)
