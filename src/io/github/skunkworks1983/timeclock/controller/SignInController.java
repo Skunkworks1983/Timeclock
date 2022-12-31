@@ -32,11 +32,11 @@ public class SignInController
         if(pinStore.doesPinExist(member.getId()))
         {
             boolean isSessionActive = sessionStore.isSessionActive();
+            long queuedSessionStart = sessionStore.getQueuedSessionStart();
             if(!isAdmin)
             {
                 if(pinStore.checkPin(member.getId(), pin))
                 {
-                    long queuedSessionStart = sessionStore.getQueuedSessionStart();
                     if(isSessionActive)
                     {
                         if(signingIn)
@@ -49,7 +49,7 @@ public class SignInController
                         }
                         return new AlertMessage(true, null);
                     }
-                    else if(signingIn && queuedSessionStart != 0)
+                    else if(signingIn && queuedSessionStart > 0)
                     {
                         memberStore.signIn(member, queuedSessionStart);
                         return new AlertMessage(true, String.format("%s %s signed in for meeting starting at %s.",
@@ -74,7 +74,7 @@ public class SignInController
                     if(signingIn)
                     {
                         memberStore.signIn(member);
-                        if(!isSessionActive)
+                        if(!(isSessionActive || queuedSessionStart > 0))
                         {
                             return sessionController.startSession(member, false);
                         }

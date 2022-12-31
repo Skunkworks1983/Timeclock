@@ -19,7 +19,7 @@ public class SessionStore
     
     public long startSession(Member startedBy, boolean delayUntilScheduled)
     {
-        if(startedBy.getRole().equals(Role.ADMIN) && !isSessionActive())
+        if(startedBy.getRole().equals(Role.ADMIN) && !(isSessionActive() || getQueuedSessionStart() > 0))
         {
             return DatabaseConnector.runQuery(query ->
                {
@@ -44,7 +44,7 @@ public class SessionStore
     
     public void endSession(Member endedBy)
     {
-        if(endedBy.getRole().equals(Role.ADMIN) && isSessionActive())
+        if(endedBy.getRole().equals(Role.ADMIN) && (isSessionActive() || getQueuedSessionStart() > 0))
         {
             DatabaseConnector.runQuery(query ->
                {

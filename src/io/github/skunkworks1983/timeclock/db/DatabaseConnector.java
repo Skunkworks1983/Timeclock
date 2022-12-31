@@ -23,6 +23,11 @@ public class DatabaseConnector
         DatabaseConnector.databaseFile = databaseFile;
     }
     
+    public static String getDatabaseFile()
+    {
+        return databaseFile;
+    }
+    
     public static <T> T runQuery(Function<DSLContext, T> func)
     {
         try(Connection connection = DatabaseConnector.createConnection())

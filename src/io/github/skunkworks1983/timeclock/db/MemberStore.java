@@ -59,6 +59,7 @@ public class MemberStore
     
     public void signOut(Member member, boolean force)
     {
+
         if(member.isSignedIn())
         {
             long memberTimeSec = TimeUtil.convertHourToSec(member.getHours());

@@ -1,3 +1,5 @@
 /jooq-codegen/src/
 /out/
 /out/*
+awsCreds.json
+testtable-*
