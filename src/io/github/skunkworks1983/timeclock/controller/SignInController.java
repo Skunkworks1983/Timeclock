@@ -28,12 +28,11 @@ public class SignInController
     
     public AlertMessage handleSignIn(Member member, boolean signingIn, char[] pin)
     {
-        boolean isAdmin = member.getRole().equals(Role.ADMIN);
         if(pinStore.doesPinExist(member.getId()))
         {
             boolean isSessionActive = sessionStore.isSessionActive();
             long queuedSessionStart = sessionStore.getQueuedSessionStart();
-            if(!isAdmin)
+            if(member.getRole().equals(Role.STUDENT))
             {
                 if(pinStore.checkPin(member.getId(), pin))
                 {
@@ -60,6 +59,26 @@ public class SignInController
                     {
                         return new AlertMessage(false, "You can only sign in or out during meetings.");
                     }
+                }
+                else
+                {
+                    return new AlertMessage(false, String.format("Wrong PIN entered for %s %s.", member.getFirstName(),
+                                                                 member.getLastName()));
+                }
+            }
+            else if(member.getRole().equals(Role.MENTOR))
+            {
+                if(pinStore.checkPin(member.getId(), pin))
+                {
+                    if(signingIn)
+                    {
+                        memberStore.signIn(member);
+                    }
+                    else
+                    {
+                        memberStore.signOut(member);
+                    }
+                    return new AlertMessage(true, null);
                 }
                 else
                 {
