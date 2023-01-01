@@ -172,7 +172,7 @@ public class MemberList extends JList<Member>
         {
             JPanel rowPanel = new JPanel();
             JLabel rowLabel = new JLabel(Integer.toString(index + 1));
-            rowLabel.setFont(new Font(null, Font.BOLD, 20));
+            rowLabel.setFont(new Font(null, Font.BOLD, 26));
             JLabel firstName = new JLabel(value.getFirstName());
             JLabel lastName = new JLabel(value.getLastName());
             JLabel signInTime = new JLabel(value.isSignedIn()
@@ -222,7 +222,7 @@ public class MemberList extends JList<Member>
                 hours.setText(String.format("%3.1f", value.getHours()));
             }
             
-            rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150][grow][250][100]", "[24!]"));
+            rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150:][grow][300:][100:]", "[30!]"));
             
             rowPanel.add(rowLabel, "cell 0 0");
             rowPanel.add(firstName, "cell 1 0");

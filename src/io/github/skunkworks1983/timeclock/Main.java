@@ -7,9 +7,11 @@ import io.github.skunkworks1983.timeclock.ui.MainWindow;
 import io.github.skunkworks1983.timeclock.ui.UiModule;
 
 import javax.swing.UIManager;
+import javax.swing.plaf.FontUIResource;
 import java.awt.Font;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 public class Main
 {
@@ -33,11 +35,12 @@ public class Main
         }
         
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        UIManager.put("Label.font", new Font(null, Font.PLAIN, 20));
-        UIManager.put("Button.font", new Font(null, Font.PLAIN, 20));
-        UIManager.put("TextField.font", new Font(null, Font.PLAIN, 20));
-        UIManager.put("ComboBox.font", new Font(null, Font.PLAIN, 20));
-        UIManager.put("PasswordField.font", new Font(null, Font.PLAIN, 20));
+        UIManager.put("Label.font", new FontUIResource(null, Font.PLAIN, 26));
+        UIManager.put("Button.font", new FontUIResource(null, Font.PLAIN, 26));
+        UIManager.put("TextField.font", new FontUIResource(null, Font.PLAIN, 26));
+        UIManager.put("TextArea.font", new FontUIResource(null, Font.PLAIN, 26));
+        UIManager.put("ComboBox.font", new FontUIResource(null, Font.PLAIN, 26));
+        UIManager.put("PasswordField.font", new FontUIResource(null, Font.PLAIN, 26));
         
         Guice.createInjector(new UiModule(), new ControllerModule(awsCredPath)).getInstance(MainWindow.class).prepare();
     }

@@ -24,14 +24,14 @@ public class MemberListPanel extends JPanel
         JLabel signInTime = new JLabel("Signed In At");
         JLabel requirementMet = new JLabel("Hours");
         
-        headerPanel.setLayout(new MigLayout("fillx, insets 4", "[40!][150][grow][250][100]", "[24!]"));
+        headerPanel.setLayout(new MigLayout("fillx, insets 4", "[40!][150:][grow][300:][100:]", "[30!]"));
         headerPanel.add(rowLabel);
         headerPanel.add(firstName);
         headerPanel.add(lastName);
         headerPanel.add(signInTime);
         headerPanel.add(requirementMet);
         
-        setLayout(new MigLayout("fill", "[grow]", "[24!][grow]"));
+        setLayout(new MigLayout("fill", "[grow]", "[30!][grow]"));
         
         add(headerPanel, "cell 0 0, growx");
         add(scrollPane, "cell 0 1, grow");

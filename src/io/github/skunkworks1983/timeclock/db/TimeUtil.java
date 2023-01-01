@@ -13,7 +13,7 @@ public class TimeUtil
     
     public static String formatTime(long millis)
     {
-        return DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        return DateTimeFormatter.ofPattern("MM-dd-yy hh:mm a")
                 .format(LocalDateTime.ofEpochSecond(millis, 0, OffsetDateTime.now().getOffset()));
     }
     

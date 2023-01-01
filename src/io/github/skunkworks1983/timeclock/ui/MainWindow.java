@@ -28,7 +28,7 @@ public class MainWindow extends JFrame implements MainListRefresher
     
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
-        getContentPane().setLayout(new MigLayout("fill, insets 0 0 0 0", "[800!]", "[1250!][30!]"));
+        getContentPane().setLayout(new MigLayout("fill, insets 0 0 0 0", "[800:]", "[1250:][30!]"));
         
         add(memberListPanel, "cell 0 0, grow");
         add(instructions, "cell 0 1, gap 5!, growx");
@@ -64,6 +64,8 @@ public class MainWindow extends JFrame implements MainListRefresher
         });
         
         memberListPanel.getMemberList().updateListModel();
+        
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
     
     public void prepare()

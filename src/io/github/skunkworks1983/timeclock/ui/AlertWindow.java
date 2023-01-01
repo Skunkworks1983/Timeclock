@@ -5,29 +5,38 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import java.awt.Color;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 
 public class AlertWindow extends JFrame
 {
-    private final JLabel messageLabel;
+    private final JTextArea messageArea;
     private final JButton okButton;
     private Runnable okButtonCallback;
     
     public AlertWindow() throws HeadlessException
     {
-        messageLabel = new JLabel();
+        messageArea = new JTextArea();
+        messageArea.setEditable(false);
+        messageArea.setWrapStyleWord(true);
+        messageArea.setLineWrap(true);
+        messageArea.setBackground((Color)UIManager.getDefaults().get("Label.background"));
         okButton = new JButton("OK");
     
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
-        setLayout(new MigLayout("", "[grow]", "[][]"));
+        setLayout(new MigLayout("", "[grow]", "[grow][]"));
         
-        add(messageLabel, "cell 0 0, grow");
+        add(messageArea, "cell 0 0, grow, wmin 500");
         add(okButton, "cell 0 1, center");
         
         okButton.addActionListener(new ActionListener()
@@ -39,6 +48,21 @@ public class AlertWindow extends JFrame
                 if(okButtonCallback != null)
                 {
                     okButtonCallback.run();
+                }
+            }
+        });
+        
+        okButton.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e)
+            {
+                if(e.getKeyChar() == '\n')
+                {
+                    setVisible(false);
+                    if(okButtonCallback != null)
+                    {
+                        okButtonCallback.run();
+                    }
                 }
             }
         });
@@ -67,7 +91,7 @@ public class AlertWindow extends JFrame
         if(message.getMessage() != null)
         {
             setTitle(message.isSuccess() ? "Message" : "Error");
-            messageLabel.setText(message.getMessage());
+            messageArea.setText(message.getMessage());
             okButtonCallback = message.getOkButtonCallback();
             
             pack();
