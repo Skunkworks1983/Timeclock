@@ -12,10 +12,11 @@ public class Member
     private double hours;
     private long lastSignIn;
     private boolean isSignedIn;
+    private int penalties;
     
-    @ConstructorProperties({"id", "role", "firstname", "lastname", "hours", "lastsignedin", "issignedin"})
+    @ConstructorProperties({"id", "role", "firstname", "lastname", "hours", "lastsignedin", "issignedin", "penalties"})
     public Member(String id, Role role, String firstName, String lastName, double hours, long lastSignIn,
-                  boolean isSignedIn)
+                  boolean isSignedIn, int penalties)
     {
         this.id = UUID.fromString(id);
         this.role = role;
@@ -24,10 +25,11 @@ public class Member
         this.hours = hours;
         this.lastSignIn = lastSignIn;
         this.isSignedIn = isSignedIn;
+        this.penalties = penalties;
     }
     
     public Member(UUID id, Role role, String firstName, String lastName, double hours, long lastSignIn,
-                  boolean isSignedIn)
+                  boolean isSignedIn, int penalties)
     {
         this.id = id;
         this.role = role;
@@ -36,6 +38,7 @@ public class Member
         this.hours = hours;
         this.lastSignIn = lastSignIn;
         this.isSignedIn = isSignedIn;
+        this.penalties = penalties;
     }
     
     public UUID getId()
@@ -86,5 +89,15 @@ public class Member
     public void setSignedIn(boolean signedIn)
     {
         isSignedIn = signedIn;
+    }
+    
+    public int getPenalties()
+    {
+        return penalties;
+    }
+    
+    public void setPenalties(int penalties)
+    {
+        this.penalties = penalties;
     }
 }

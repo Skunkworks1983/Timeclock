@@ -36,6 +36,7 @@ public class AdminWindow extends JFrame
     private final JButton signMemberOutButton;
     private final JButton resetPinButton;
     private final JButton createAdminPinButton;
+    private final JButton applyPenaltyButton;
     
     private boolean authenticated = false;
     
@@ -70,10 +71,11 @@ public class AdminWindow extends JFrame
         signMemberOutButton = new JButton("4: Force a member to sign out");
         resetPinButton = new JButton("5: Reset member's PIN");
         createAdminPinButton = new JButton("6: Set PIN for admin member");
+        applyPenaltyButton = new JButton("7: Apply time penalty to member");
     
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
-        setLayout(new MigLayout("", "[grow]", "[][][][][][][][]"));
+        setLayout(new MigLayout("", "[grow]", "[][][][][][][][][]"));
         
         add(instructions, "cell 0 0, grow");
         add(passwordField, "cell 0 1, grow");
@@ -83,6 +85,7 @@ public class AdminWindow extends JFrame
         add(signMemberOutButton, "cell 0 5, grow");
         add(resetPinButton, "cell 0 6, grow");
         add(createAdminPinButton, "cell 0 7, grow");
+        add(applyPenaltyButton, "cell 0 8, grow");
         
         pack();
         setLocationRelativeTo(null);
@@ -153,6 +156,9 @@ public class AdminWindow extends JFrame
                         case KeyEvent.VK_6:
                             createAdminPin();
                             break;
+                        case KeyEvent.VK_7:
+                            applyPenalty();
+                            break;
                     }
                 }
             }
@@ -164,6 +170,7 @@ public class AdminWindow extends JFrame
         signMemberOutButton.addActionListener(e -> forceSignOut());
         resetPinButton.addActionListener(e -> resetPin());
         createAdminPinButton.addActionListener(e -> createAdminPin());
+        applyPenaltyButton.addActionListener(e -> applyPenalty());
     }
     
     private void showCreateMemberWindow()
@@ -233,6 +240,20 @@ public class AdminWindow extends JFrame
             memberPickerWindow.setVisible(false);
         });
         memberPickerWindow.setVisible(true);
+    }
+    
+    private void applyPenalty()
+    {
+        alertWindow.showAlert(new AlertMessage(true, "Choose a student to apply the penalty to. Each penalty reduces accumulated hours by 10%. The true hour count is preserved, so they can be reversed at any time.", () ->
+        {
+            memberPickerWindow.getMemberListPanel().getMemberList().setRoleFilter(Collections.singleton(Role.STUDENT));
+            memberPickerWindow.getMemberListPanel().getMemberList().setSelectionCallback(member -> {
+                alertWindow.showAlert(adminController.applyPenalty(member));
+                memberPickerWindow.setVisible(false);
+                mainListRefresher.refresh();
+            });
+            memberPickerWindow.setVisible(true);
+        }));
     }
     
     @Override

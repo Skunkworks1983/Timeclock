@@ -183,7 +183,8 @@ public class MemberList extends JList<Member>
             if(value.getRole().equals(Role.STUDENT))
             {
                 double baselineHours = sessionController.calculateScheduledHours();
-                if(value.getHours() > 0.9 * baselineHours)
+                double penaltyAdjustedHours = value.getHours() * (1 - 0.1 * value.getPenalties());
+                if(penaltyAdjustedHours > 0.9 * baselineHours)
                 {
                     if(greenCircleIcon != null)
                     {
@@ -194,7 +195,7 @@ public class MemberList extends JList<Member>
                         hours.setForeground(new Color(0, 200, 0));
                     }
                 }
-                else if(value.getHours() > 0.8 * baselineHours)
+                else if(penaltyAdjustedHours > 0.8 * baselineHours)
                 {
                     if(yellowCheckIcon != null)
                     {

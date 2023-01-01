@@ -50,7 +50,7 @@ public class AdminController
     
     public AlertMessage createMember(Role role, String firstName, String lastName)
     {
-        if(memberStore.createMember(new Member(UUID.randomUUID(), role, firstName, lastName, 0, 0, false)))
+        if(memberStore.createMember(new Member(UUID.randomUUID(), role, firstName, lastName, 0, 0, false, 0)))
         {
             return new AlertMessage(true, String.format("%s %s %s created.", role, firstName, lastName));
         }
@@ -72,5 +72,12 @@ public class AdminController
         pinStore.deletePin(member.getId());
         return new AlertMessage(true,
                                 String.format("Cleared PIN for %s %s.", member.getFirstName(), member.getLastName()));
+    }
+    
+    public AlertMessage applyPenalty(Member member)
+    {
+        memberStore.applyPenalty(member);
+        return new AlertMessage(true, String.format("Applied penalty to %s %s. New penalty count: %d.",
+                                                    member.getFirstName(), member.getLastName(), member.getPenalties()));
     }
 }

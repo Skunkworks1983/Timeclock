@@ -5,6 +5,8 @@ import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static io.github.skunkworks1983.timeclock.db.generated.tables.Members.MEMBERS;
+
 public class MemberStore
 {
     public MemberStore()
@@ -15,9 +17,9 @@ public class MemberStore
     {
         List<Member> memberList = DatabaseConnector
                 .runQuery(query -> {
-                    List<Member> members = query.selectFrom(Members.MEMBERS)
-                                                .orderBy(Members.MEMBERS.LASTNAME.asc(),
-                                                         Members.MEMBERS.FIRSTNAME.asc())
+                    List<Member> members = query.selectFrom(MEMBERS)
+                                                .orderBy(MEMBERS.LASTNAME.asc(),
+                                                         MEMBERS.FIRSTNAME.asc())
                                                 .fetch()
                                                 .into(Member.class);
                     return members;
@@ -39,10 +41,10 @@ public class MemberStore
             member.setSignedIn(true);
             
             DatabaseConnector.runQuery(query -> {
-                query.update(Members.MEMBERS)
-                     .set(Members.MEMBERS.LASTSIGNEDIN, member.getLastSignIn())
-                     .set(Members.MEMBERS.ISSIGNEDIN, 1)
-                     .where(Members.MEMBERS.ID.eq(member.getId().toString()))
+                query.update(MEMBERS)
+                     .set(MEMBERS.LASTSIGNEDIN, member.getLastSignIn())
+                     .set(MEMBERS.ISSIGNEDIN, 1)
+                     .where(MEMBERS.ID.eq(member.getId().toString()))
                      .execute();
                 
                 return null;
@@ -76,10 +78,10 @@ public class MemberStore
             member.setSignedIn(false);
             
             DatabaseConnector.runQuery(query -> {
-                query.update(Members.MEMBERS)
-                     .set(Members.MEMBERS.HOURS, (float) member.getHours())
-                     .set(Members.MEMBERS.ISSIGNEDIN, 0)
-                     .where(Members.MEMBERS.ID.eq(member.getId().toString()))
+                query.update(MEMBERS)
+                     .set(MEMBERS.HOURS, (float) member.getHours())
+                     .set(MEMBERS.ISSIGNEDIN, 0)
+                     .where(MEMBERS.ID.eq(member.getId().toString()))
                      .execute();
                 
                 return null;
@@ -89,6 +91,18 @@ public class MemberStore
     
     public boolean createMember(Member member)
     {
-        return DatabaseConnector.runQuery(query -> query.executeInsert(query.newRecord(Members.MEMBERS, member))) > 0;
+        return DatabaseConnector.runQuery(query -> query.executeInsert(query.newRecord(MEMBERS, member))) > 0;
+    }
+    
+    public void applyPenalty(Member member)
+    {
+        DatabaseConnector.runQuery(query -> {
+           query.update(MEMBERS)
+                .set(MEMBERS.PENALTIES, member.getPenalties() + 1)
+                .where(MEMBERS.ID.eq(member.getId().toString()))
+                .execute();
+           return null;
+        });
+        member.setPenalties(member.getPenalties() + 1);
     }
 }

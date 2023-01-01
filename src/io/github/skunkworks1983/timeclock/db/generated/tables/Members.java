@@ -11,7 +11,7 @@ import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row7;
+import org.jooq.Row8;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -83,6 +83,12 @@ public class Members extends TableImpl<MembersRecord>
      */
     public final TableField<MembersRecord, Long> LASTSIGNEDIN = createField(DSL.name("lastSignedIn"),
                                                                             SQLDataType.BIGINT, this, "");
+    
+    /**
+     * The column <code>members.penalties</code>.
+     */
+    public final TableField<MembersRecord, Integer> PENALTIES = createField(DSL.name("penalties"), SQLDataType.INTEGER,
+                                                                            this, "");
     
     private Members(Name alias, Table<MembersRecord> aliased)
     {
@@ -166,12 +172,12 @@ public class Members extends TableImpl<MembersRecord>
     }
     
     // -------------------------------------------------------------------------
-    // Row7 type methods
+    // Row8 type methods
     // -------------------------------------------------------------------------
     
     @Override
-    public Row7<String, String, String, String, Float, Integer, Long> fieldsRow()
+    public Row8<String, String, String, String, Float, Integer, Long, Integer> fieldsRow()
     {
-        return (Row7) super.fieldsRow();
+        return (Row8) super.fieldsRow();
     }
 }
