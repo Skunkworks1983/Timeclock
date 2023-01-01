@@ -29,7 +29,7 @@ public class AdminController
         this.pinStore = pinStore;
     }
     
-    public AlertMessage authenticate(char[] enteredPass)
+    public AlertMessage authenticateAdminWindow(char[] enteredPass)
     {
         try
         {

@@ -3,6 +3,7 @@ package io.github.skunkworks1983.timeclock.ui;
 import com.google.inject.Inject;
 import io.github.skunkworks1983.timeclock.controller.AdminController;
 import io.github.skunkworks1983.timeclock.controller.SessionController;
+import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.Role;
 import net.miginfocom.swing.MigLayout;
 
@@ -39,6 +40,7 @@ public class AdminWindow extends JFrame
     private final JButton applyPenaltyButton;
     
     private boolean authenticated = false;
+    private Member currentAdmin = null;
     
     @Inject
     public AdminWindow(AdminController adminController,
@@ -101,7 +103,7 @@ public class AdminWindow extends JFrame
                 if(e.getKeyChar() == '\n')
                 {
                     char[] enteredPass = passwordField.getPassword();
-                    AlertMessage authMessage = adminController.authenticate(enteredPass);
+                    AlertMessage authMessage = adminController.authenticateAdminWindow(enteredPass);
                     alertWindow.showAlert(authMessage);
                     setAuthenticated(authMessage.isSuccess());
                     passwordField.setText("");
@@ -292,6 +294,8 @@ public class AdminWindow extends JFrame
         resetPinButton.setVisible(authenticated);
         createAdminPinButton.setEnabled(authenticated);
         createAdminPinButton.setVisible(authenticated);
+        applyPenaltyButton.setEnabled(authenticated);
+        applyPenaltyButton.setVisible(authenticated);
         
         pack();
         setLocationRelativeTo(null);

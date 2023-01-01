@@ -1,16 +1,11 @@
 package io.github.skunkworks1983.timeclock.db;
 
 import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
-import org.jooq.DSLContext;
 import org.jooq.Record2;
 import org.jooq.Result;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DSL;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.UUID;
 
 public class PinStore
