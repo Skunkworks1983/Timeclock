@@ -32,13 +32,13 @@ public class PinWindow extends JFrame
         super("Enter PIN");
         
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
+        CursorUtil.hideCursorInWindow(this);
         
         promptText = new JLabel("No member set");
         pinField = new JPasswordField();
         
         setAutoRequestFocus(true);
-    
-        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
     
         setLayout(new MigLayout("", "[grow]", "[][]"));
         

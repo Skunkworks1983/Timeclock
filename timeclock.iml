@@ -14,5 +14,6 @@
     <orderEntry type="library" name="miglayout" level="project" />
     <orderEntry type="library" name="amazonaws.aws.java.sdk.s3" level="project" />
     <orderEntry type="library" name="commons.io" level="project" />
+    <orderEntry type="library" name="net.sf.sociaal.freetts" level="project" />
   </component>
 </module>

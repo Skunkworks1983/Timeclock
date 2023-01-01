@@ -8,6 +8,7 @@ import io.github.skunkworks1983.timeclock.db.Role;
 import io.github.skunkworks1983.timeclock.db.SessionStore;
 import io.github.skunkworks1983.timeclock.db.TimeUtil;
 import io.github.skunkworks1983.timeclock.ui.AlertMessage;
+import io.github.skunkworks1983.timeclock.ui.TextToSpeechHandler;
 
 public class SignInController
 {
@@ -15,15 +16,17 @@ public class SignInController
     private final MemberStore memberStore;
     private final SessionStore sessionStore;
     private final SessionController sessionController;
+    private final TextToSpeechHandler tts;
     
     @Inject
     public SignInController(PinStore pinStore, MemberStore memberStore, SessionStore sessionStore,
-                            SessionController sessionController)
+                            SessionController sessionController, TextToSpeechHandler tts)
     {
         this.pinStore = pinStore;
         this.memberStore = memberStore;
         this.sessionStore = sessionStore;
         this.sessionController = sessionController;
+        this.tts = tts;
     }
     
     public AlertMessage handleSignIn(Member member, boolean signingIn, char[] pin)
@@ -41,16 +44,19 @@ public class SignInController
                         if(signingIn)
                         {
                             memberStore.signIn(member);
+                            speakSignIn(member, true);
                         }
                         else
                         {
                             memberStore.signOut(member);
+                            speakSignIn(member, false);
                         }
                         return new AlertMessage(true, null);
                     }
                     else if(signingIn && queuedSessionStart > 0)
                     {
                         memberStore.signIn(member, queuedSessionStart);
+                        speakSignIn(member, true);
                         return new AlertMessage(true, String.format("%s %s signed in for meeting starting at %s.",
                                                                     member.getFirstName(), member.getLastName(),
                                                                     TimeUtil.formatTime(queuedSessionStart)));
@@ -73,10 +79,12 @@ public class SignInController
                     if(signingIn)
                     {
                         memberStore.signIn(member);
+                        speakSignIn(member, true);
                     }
                     else
                     {
                         memberStore.signOut(member);
+                        speakSignIn(member, false);
                     }
                     return new AlertMessage(true, null);
                 }
@@ -97,6 +105,7 @@ public class SignInController
                         {
                             return sessionController.startSession(member, false);
                         }
+                        speakSignIn(member, true);
                         return new AlertMessage(true, null);
                     }
                     else
@@ -110,6 +119,7 @@ public class SignInController
                         {
                             return sessionController.endSession(member);
                         }
+                        speakSignIn(member, false);
                         return new AlertMessage(true, null);
                     }
                 }
@@ -135,8 +145,14 @@ public class SignInController
     public AlertMessage createPin(Member member, char[] pin)
     {
         pinStore.createPin(member.getId(), pin);
+        tts.speak(String.format("PIN set for %s %s", member.getFirstName(), member.getLastName()));
         return new AlertMessage(true, String.format(
                 "PIN set for %s %s. Please memorize your PIN and don't share it with anyone. If you forget your PIN, a coach can reset it, but it can't be retrieved for you.",
                 member.getFirstName(), member.getLastName()));
+    }
+    
+    private void speakSignIn(Member member, boolean signedIn)
+    {
+        tts.speak(String.format("%s %s signed %s", member.getFirstName(), member.getLastName(), signedIn ? "in" : "out"));
     }
 }

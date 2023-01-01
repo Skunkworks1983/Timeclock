@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="net.sf.sociaal.freetts" type="repository">
+    <properties maven-id="net.sf.sociaal:freetts:1.2.2" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/net/sf/sociaal/freetts/1.2.2/freetts-1.2.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/net/sf/sociaal/freetts/1.2.2/freetts-1.2.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

@@ -8,7 +8,9 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import java.awt.KeyboardFocusManager;
+import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
 
 @Singleton
 public class MainWindow extends JFrame implements MainListRefresher
@@ -23,10 +25,11 @@ public class MainWindow extends JFrame implements MainListRefresher
     {
         super("Skunk Works Timeclock");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JLabel instructions = new JLabel(
-                "Type a number and press Enter to sign in/out; + and - to scroll; * to open admin controls");
-    
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
+        CursorUtil.hideCursorInWindow(this);
+        
+        JLabel instructions = new JLabel(
+                "Type a number and press Enter to sign in/out; + and - to scroll");
         
         getContentPane().setLayout(new MigLayout("fill, insets 0 0 0 0", "[800:]", "[1250:][30!]"));
         

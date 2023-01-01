@@ -6,8 +6,8 @@ import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
 import io.github.skunkworks1983.timeclock.db.PinStore;
 import io.github.skunkworks1983.timeclock.db.Role;
-import io.github.skunkworks1983.timeclock.db.ScheduleStore;
 import io.github.skunkworks1983.timeclock.ui.AlertMessage;
+import io.github.skunkworks1983.timeclock.ui.TextToSpeechHandler;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -18,15 +18,15 @@ public class AdminController
     private static final byte[] ADMIN_PASS_SALT = {-49, -73, 42, -123};
     
     private final MemberStore memberStore;
-    private final ScheduleStore scheduleStore;
     private final PinStore pinStore;
+    private final TextToSpeechHandler tts;
     
     @Inject
-    public AdminController(MemberStore memberStore, ScheduleStore scheduleStore, PinStore pinStore)
+    public AdminController(MemberStore memberStore, PinStore pinStore, TextToSpeechHandler tts)
     {
         this.memberStore = memberStore;
-        this.scheduleStore = scheduleStore;
         this.pinStore = pinStore;
+        this.tts = tts;
     }
     
     public AlertMessage authenticateAdminWindow(char[] enteredPass)
@@ -35,6 +35,7 @@ public class AdminController
         {
             if(HashUtil.computeHash(ADMIN_PASS_SALT, enteredPass).equals(ADMIN_PASS_HASH))
             {
+                tts.speak("Logged into admin panel");
                 return new AlertMessage(true, null, null);
             }
             else
@@ -63,20 +64,23 @@ public class AdminController
     public AlertMessage forceSignOut(Member member)
     {
         memberStore.signOut(member, true);
-        return new AlertMessage(true,
-                                String.format("Force signed out %s %s.", member.getFirstName(), member.getLastName()));
+        String message = String.format("Force signed out %s %s.", member.getFirstName(), member.getLastName());
+        tts.speak(message);
+        return new AlertMessage(true, message);
     }
     
     public AlertMessage resetPin(Member member)
     {
         pinStore.deletePin(member.getId());
-        return new AlertMessage(true,
-                                String.format("Cleared PIN for %s %s.", member.getFirstName(), member.getLastName()));
+        String message = String.format("Cleared PIN for %s %s.", member.getFirstName(), member.getLastName());
+        tts.speak(message);
+        return new AlertMessage(true, message);
     }
     
     public AlertMessage applyPenalty(Member member)
     {
         memberStore.applyPenalty(member);
+        tts.speak(String.format("Applied penalty to %s %s", member.getFirstName(), member.getLastName()));
         return new AlertMessage(true, String.format("Applied penalty to %s %s. New penalty count: %d.",
                                                     member.getFirstName(), member.getLastName(), member.getPenalties()));
     }

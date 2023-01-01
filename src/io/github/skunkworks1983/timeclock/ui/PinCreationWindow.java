@@ -6,7 +6,6 @@ import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.PinStore;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
@@ -32,13 +31,13 @@ public class PinCreationWindow extends JFrame
         super("Enter PIN");
         
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
+        CursorUtil.hideCursorInWindow(this);
         
         promptText = new JLabel("No member set");
         pinField = new JPasswordField();
         
         setAutoRequestFocus(true);
-    
-        setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
         setLayout(new MigLayout("", "[grow]", "[][]"));
     

@@ -14,26 +14,29 @@ import io.github.skunkworks1983.timeclock.db.MemberStore;
 import io.github.skunkworks1983.timeclock.db.SessionStore;
 import io.github.skunkworks1983.timeclock.db.TimeUtil;
 import io.github.skunkworks1983.timeclock.ui.AlertMessage;
+import io.github.skunkworks1983.timeclock.ui.TextToSpeechHandler;
 
 import javax.annotation.Nullable;
-import javax.swing.SwingUtilities;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.format.DateTimeFormatter;
 
 public class SessionController
 {
     private final SessionStore sessionStore;
     private final MemberStore memberStore;
+    private final TextToSpeechHandler tts;
     private final AWSCredentials awsCredentials;
     
     @Inject
     public SessionController(SessionStore sessionStore, MemberStore memberStore,
-                             @Nullable AWSCredentials awsCredentials)
+                             TextToSpeechHandler tts, @Nullable AWSCredentials awsCredentials)
     {
         this.sessionStore = sessionStore;
         this.memberStore = memberStore;
+        this.tts = tts;
         this.awsCredentials = awsCredentials;
     }
     
@@ -51,6 +54,10 @@ public class SessionController
             {
                 memberStore.signIn(startedBy, sessionStart);
             }
+            tts.speak(String.format("Session started by %s %s at %s.",
+                                    startedBy.getFirstName(), startedBy.getLastName(),
+                                    DateTimeFormatter.ofPattern("hh:mm a")
+                                                     .format(TimeUtil.getDateTime(sessionStart))));
             return new AlertMessage(true, String.format("Session started by %s %s at %s.",
                                                         startedBy.getFirstName(), startedBy.getLastName(),
                                                         TimeUtil.formatTime(sessionStart)));
@@ -103,7 +110,7 @@ public class SessionController
             }
         }).start();
         
-        
+        tts.speak(String.format("Session ended by %s %s", endedBy.getFirstName(), endedBy.getLastName()));
         return new AlertMessage(true, String.format("Session ended by %s %s at %s; %d member(s) force signed out.",
                                                     endedBy.getFirstName(), endedBy.getLastName(),
                                                     TimeUtil.formatTime(TimeUtil.getCurrentTimestamp()),
