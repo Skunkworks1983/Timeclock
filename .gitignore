@@ -2,4 +2,6 @@
 /out/
 /out/*
 awsCreds.json
+*/awsCreds.json
 testtable-*
+logintable*

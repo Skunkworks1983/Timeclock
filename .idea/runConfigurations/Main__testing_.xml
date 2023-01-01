@@ -1,7 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Main" type="Application" factoryName="Application">
+  <configuration default="false" name="Main (testing)" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="io.github.skunkworks1983.timeclock.Main" />
     <module name="timeclock" />
+    <option name="PROGRAM_PARAMETERS" value="testtable" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="io.github.skunkworks1983.timeclock.*" />

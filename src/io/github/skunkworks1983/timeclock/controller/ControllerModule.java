@@ -6,37 +6,32 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.util.Providers;
+import org.apache.commons.io.IOUtils;
 
-import java.io.File;
+import java.nio.charset.Charset;
 
 public class ControllerModule extends AbstractModule
 {
-    private String awsCredPath = null;
     
-    public ControllerModule(String awsCredPath)
+    public ControllerModule()
     {
-        this.awsCredPath = awsCredPath;
     }
     
     @Override
     protected void configure()
     {
-        if(awsCredPath != null)
+        try
         {
-            try
-            {
-                JsonNode node = new ObjectMapper().readTree(new File(awsCredPath));
-                BasicAWSCredentials awsCredentials = new BasicAWSCredentials(node.get("accessKey").asText(),
-                                                                             node.get("secretKey").asText());
-                bind(AWSCredentials.class).toInstance(awsCredentials);
-            }
-            catch(Exception e)
-            {
-                bind(AWSCredentials.class).toProvider(Providers.of(null));
-            }
+            JsonNode node = new ObjectMapper().readTree(IOUtils.resourceToString("awsCreds.json",
+                                                                                 Charset.defaultCharset(),
+                                                                                 ClassLoader.getSystemClassLoader()));
+            BasicAWSCredentials awsCredentials = new BasicAWSCredentials(node.get("accessKey").asText(),
+                                                                         node.get("secretKey").asText());
+            bind(AWSCredentials.class).toInstance(awsCredentials);
         }
-        else
+        catch(Exception e)
         {
+            System.err.println("Failed to deserialize awsCreds.json from resources: " + e.getMessage());
             bind(AWSCredentials.class).toProvider(Providers.of(null));
         }
     }
