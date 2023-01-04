@@ -6,22 +6,33 @@ package io.github.skunkworks1983.timeclock.db.generated;
 
 import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Sessions;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Signins;
 
 
 /**
  * Convenience access to all tables in the default schema.
  */
-@SuppressWarnings({"all", "unchecked", "rawtypes"})
-public class Tables
-{
-    
+@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+public class Tables {
+
     /**
      * The table <code>members</code>.
      */
     public static final Members MEMBERS = Members.MEMBERS;
-    
+
     /**
      * The table <code>pins</code>.
      */
     public static final Pins PINS = Pins.PINS;
+
+    /**
+     * The table <code>sessions</code>.
+     */
+    public static final Sessions SESSIONS = Sessions.SESSIONS;
+
+    /**
+     * The table <code>SignIns</code>.
+     */
+    public static final Signins SIGNINS = Signins.SIGNINS;
 }

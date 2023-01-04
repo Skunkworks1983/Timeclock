@@ -1,10 +1,11 @@
 package io.github.skunkworks1983.timeclock.db;
 
-import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
+import io.github.skunkworks1983.timeclock.db.generated.tables.records.SigninsRecord;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static io.github.skunkworks1983.timeclock.db.generated.tables.Signins.SIGNINS;
 import static io.github.skunkworks1983.timeclock.db.generated.tables.Members.MEMBERS;
 
 public class MemberStore
@@ -49,6 +50,13 @@ public class MemberStore
                 
                 return null;
             });
+            
+            DatabaseConnector.runQuery(query -> {
+                query.insertInto(SIGNINS)
+                     .set(new SigninsRecord(member.getId().toString(), member.getLastSignIn(), 1, 0))
+                     .execute();
+                return null;
+            });
         }
     }
     
@@ -59,18 +67,18 @@ public class MemberStore
     
     public void signOut(Member member, boolean force)
     {
-        
         if(member.isSignedIn())
         {
             long memberTimeSec = TimeUtil.convertHourToSec(member.getHours());
+            long currentTimestamp = TimeUtil.getCurrentTimestamp();
             if(force)
             {
-                memberTimeSec += Math.min(TimeUtil.getCurrentTimestamp() - member.getLastSignIn(),
+                memberTimeSec += Math.min(currentTimestamp - member.getLastSignIn(),
                                           TimeUnit.HOURS.toSeconds(1));
             }
             else
             {
-                memberTimeSec += TimeUtil.getCurrentTimestamp() - member.getLastSignIn();
+                memberTimeSec += currentTimestamp - member.getLastSignIn();
             }
             
             memberTimeSec = Math.max(memberTimeSec, 0);
@@ -84,6 +92,12 @@ public class MemberStore
                      .where(MEMBERS.ID.eq(member.getId().toString()))
                      .execute();
                 
+                return null;
+            });
+            DatabaseConnector.runQuery(query -> {
+                query.insertInto(SIGNINS)
+                     .set(new SigninsRecord(member.getId().toString(), currentTimestamp, 0, force ? 1 : 0))
+                     .execute();
                 return null;
             });
         }
