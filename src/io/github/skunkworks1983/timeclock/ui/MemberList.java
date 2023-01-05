@@ -78,6 +78,7 @@ public class MemberList extends JList<Member>
                         }
                         else
                         {
+                            buffer = "";
                             clearSelection();
                         }
                     }
