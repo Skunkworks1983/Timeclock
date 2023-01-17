@@ -2,16 +2,13 @@ package io.github.skunkworks1983.timeclock.ui;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.github.skunkworks1983.timeclock.controller.RebuildController;
 import io.github.skunkworks1983.timeclock.controller.SignInController;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import java.awt.KeyboardFocusManager;
-import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
 
 @Singleton
 public class MainWindow extends JFrame implements MainListRefresher
@@ -20,9 +17,8 @@ public class MainWindow extends JFrame implements MainListRefresher
     private final MemberListPanel memberListPanel;
     
     @Inject
-    public MainWindow(MemberListPanel memberListPanel, SignInController signInController, RebuildController rebuildController,
-                      PinWindow pinWindow, PinCreationWindow pinCreationWindow, AdminWindow adminWindow, AlertWindow alertWindow)
-            throws Exception
+    public MainWindow(MemberListPanel memberListPanel, SignInController signInController, PinWindow pinWindow,
+                      PinCreationWindow pinCreationWindow, AdminWindow adminWindow, AlertWindow alertWindow) throws Exception
     {
         super("Skunk Works Timeclock");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -62,13 +58,7 @@ public class MainWindow extends JFrame implements MainListRefresher
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
             if(MainWindow.this.isFocused() && !adminWindow.isVisible() && e.getKeyChar() == '*')
             {
-                System.out.println("* KEY PRESSED ON MAIN WINDOW");
                 adminWindow.setVisible(true);
-            }
-            else if(MainWindow.this.isFocused() && e.getKeyChar() == 'r')
-            {
-                System.out.println("R KEY PRESSED ON MAIN WINDOW");
-                alertWindow.showAlert(rebuildController.handleRebuild());
             }
             return false;
         });
