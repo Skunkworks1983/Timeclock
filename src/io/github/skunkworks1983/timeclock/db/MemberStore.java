@@ -1,5 +1,6 @@
 package io.github.skunkworks1983.timeclock.db;
 
+import io.github.skunkworks1983.timeclock.db.generated.tables.Signins;
 import io.github.skunkworks1983.timeclock.db.generated.tables.records.SigninsRecord;
 
 import java.util.List;
@@ -14,18 +15,17 @@ public class MemberStore
     {
     }
     
-    public List<Member> getMembers()
-    {
+    public List<Member> getMembers() {
         List<Member> memberList = DatabaseConnector
                 .runQuery(query -> {
                     List<Member> members = query.selectFrom(MEMBERS)
-                                                .orderBy(MEMBERS.LASTNAME.asc(),
-                                                         MEMBERS.FIRSTNAME.asc())
-                                                .fetch()
-                                                .into(Member.class);
+                            .orderBy(MEMBERS.LASTNAME.asc(),
+                                    MEMBERS.FIRSTNAME.asc())
+                            .fetch()
+                            .into(Member.class);
                     return members;
                 });
-        
+
         return memberList;
     }
     
@@ -106,6 +106,20 @@ public class MemberStore
     public boolean createMember(Member member)
     {
         return DatabaseConnector.runQuery(query -> query.executeInsert(query.newRecord(MEMBERS, member))) > 0;
+    }
+
+    // Invoked by the RebuildController. Will overwrite the member's hours in the database.
+    public void writeMemberHours(Member member)
+    {
+        DatabaseConnector.runQuery(query -> {
+            query.update(MEMBERS)
+                    .set(MEMBERS.HOURS, (float) member.getHours())
+                    .set(MEMBERS.ISSIGNEDIN, 0)
+                    .where(MEMBERS.ID.eq(member.getId().toString()))
+                    .execute();
+
+            return null;
+        });
     }
     
     public void applyPenalty(Member member)
