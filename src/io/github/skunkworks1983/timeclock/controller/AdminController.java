@@ -142,7 +142,7 @@ public class AdminController
             }
         }
 
-        // Write new members to Members table (skip for now)
+        // Write new members to Members table
         for(Member member : members)
         {
             memberStore.writeMemberHours(member);
