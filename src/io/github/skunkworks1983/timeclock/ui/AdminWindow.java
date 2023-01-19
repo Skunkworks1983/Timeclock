@@ -38,6 +38,7 @@ public class AdminWindow extends JFrame
     private final JButton resetPinButton;
     private final JButton createAdminPinButton;
     private final JButton applyPenaltyButton;
+    private final JButton rebuildHoursButton;
     
     private boolean authenticated = false;
     private Member currentAdmin = null;
@@ -74,6 +75,7 @@ public class AdminWindow extends JFrame
         resetPinButton = new JButton("5: Reset member's PIN");
         createAdminPinButton = new JButton("6: Set PIN for admin member");
         applyPenaltyButton = new JButton("7: Apply time penalty to member");
+        rebuildHoursButton = new JButton("8: Rebuild member hours from signins");
     
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
@@ -88,6 +90,7 @@ public class AdminWindow extends JFrame
         add(resetPinButton, "cell 0 6, grow");
         add(createAdminPinButton, "cell 0 7, grow");
         add(applyPenaltyButton, "cell 0 8, grow");
+        add(rebuildHoursButton, "cell 0 9, grow");
         
         pack();
         setLocationRelativeTo(null);
@@ -161,6 +164,9 @@ public class AdminWindow extends JFrame
                         case KeyEvent.VK_7:
                             applyPenalty();
                             break;
+                        case KeyEvent.VK_8:
+                            rebuildHours();
+                            break;
                     }
                 }
             }
@@ -173,6 +179,7 @@ public class AdminWindow extends JFrame
         resetPinButton.addActionListener(e -> resetPin());
         createAdminPinButton.addActionListener(e -> createAdminPin());
         applyPenaltyButton.addActionListener(e -> applyPenalty());
+        rebuildHoursButton.addActionListener(e -> rebuildHours());
     }
     
     private void showCreateMemberWindow()
@@ -257,6 +264,11 @@ public class AdminWindow extends JFrame
             memberPickerWindow.setVisible(true);
         }));
     }
+
+    private void rebuildHours()
+    {
+        alertWindow.showAlert(adminController.rebuildHours());
+    }
     
     @Override
     public void setVisible(boolean b)
@@ -296,6 +308,8 @@ public class AdminWindow extends JFrame
         createAdminPinButton.setVisible(authenticated);
         applyPenaltyButton.setEnabled(authenticated);
         applyPenaltyButton.setVisible(authenticated);
+        rebuildHoursButton.setEnabled(authenticated);
+        rebuildHoursButton.setVisible(authenticated);
         
         pack();
         setLocationRelativeTo(null);

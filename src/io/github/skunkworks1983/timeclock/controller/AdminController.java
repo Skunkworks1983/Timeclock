@@ -6,10 +6,16 @@ import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
 import io.github.skunkworks1983.timeclock.db.PinStore;
 import io.github.skunkworks1983.timeclock.db.Role;
+import io.github.skunkworks1983.timeclock.db.Signin;
+import io.github.skunkworks1983.timeclock.db.SigninStore;
+import io.github.skunkworks1983.timeclock.db.TimeUtil;
 import io.github.skunkworks1983.timeclock.ui.AlertMessage;
 import io.github.skunkworks1983.timeclock.ui.TextToSpeechHandler;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class AdminController
@@ -18,13 +24,15 @@ public class AdminController
     private static final byte[] ADMIN_PASS_SALT = {-49, -73, 42, -123};
     
     private final MemberStore memberStore;
+    private final SigninStore signinStore;
     private final PinStore pinStore;
     private final TextToSpeechHandler tts;
     
     @Inject
-    public AdminController(MemberStore memberStore, PinStore pinStore, TextToSpeechHandler tts)
+    public AdminController(MemberStore memberStore, SigninStore signinStore, PinStore pinStore, TextToSpeechHandler tts)
     {
         this.memberStore = memberStore;
+        this.signinStore = signinStore;
         this.pinStore = pinStore;
         this.tts = tts;
     }
@@ -82,6 +90,78 @@ public class AdminController
         memberStore.applyPenalty(member);
         tts.speak(String.format("Applied penalty to %s %s", member.getFirstName(), member.getLastName()));
         return new AlertMessage(true, String.format("Applied penalty to %s %s. New penalty count: %d.",
-                                                    member.getFirstName(), member.getLastName(), member.getPenalties()));
+                                                    member.getFirstName(), member.getLastName(),
+                                                    member.getPenalties()));
+    }
+    
+    public AlertMessage rebuildHours()
+    {
+        // Get a list of signins from the database
+        List<Signin> signins = signinStore.getSignins();
+        
+        // Get a list of members from the database
+        List<Member> members = memberStore.getMembers();
+        
+        Map<UUID, Double> uuidToOldHours = new HashMap<UUID, Double>();
+        // Zero out the hours, since we are rebuilding from the signins table
+        for(Member member : members)
+        {
+            uuidToOldHours.put(member.getId(), member.getHours());
+            member.setHours(0);
+        }
+        
+        // Iterate through signins
+        for(Signin signin : signins)
+        {
+            // If signing in, set member.lastSignedIn
+            if(signin.getIsSigningIn())
+            {
+                members.stream()
+                       .filter(m -> m.getId().equals(signin.getId()))
+                       .findFirst()
+                       .get()
+                       .setLastSignIn(signin.getTime());
+            }
+            // If signing out, calculate time delta and add to hours
+            else
+            {
+                Member member = members.stream()
+                                       .filter(m -> m.getId().equals(signin.getId()))
+                                       .findFirst()
+                                       .get();
+                
+                // Calculate the delta
+                double delta = TimeUtil.convertSecToHour(signin.getTime() - member.getLastSignIn());
+                
+                // If it was a force signout, then max the hours to 1
+                if(signin.getIsForce())
+                {
+                    delta = Math.max(delta, 1.0);
+                }
+                
+                // Update the member's hours
+                member.setHours(member.getHours() + delta);
+            }
+        }
+        
+        // Write new members to Members table
+        for(Member member : members)
+        {
+            memberStore.writeMemberHours(member);
+        }
+        
+        StringBuilder alertMsg = new StringBuilder("Rebuilt members table. Data:\n");
+        
+        // Display debug alert
+        for(Member member : members)
+        {
+            if(member.getHours() != 0)
+            {
+                alertMsg.append(String.format("\t%s %s: %.2f->%.2f\n", member.getFirstName(), member.getLastName(),
+                                              uuidToOldHours.get(member.getId()), member.getHours()));
+            }
+        }
+        
+        return new AlertMessage(true, alertMsg.toString());
     }
 }

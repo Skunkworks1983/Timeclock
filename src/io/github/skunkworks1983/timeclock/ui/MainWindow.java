@@ -8,9 +8,7 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import java.awt.KeyboardFocusManager;
-import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
 
 @Singleton
 public class MainWindow extends JFrame implements MainListRefresher
@@ -20,8 +18,7 @@ public class MainWindow extends JFrame implements MainListRefresher
     
     @Inject
     public MainWindow(MemberListPanel memberListPanel, SignInController signInController, PinWindow pinWindow,
-                      PinCreationWindow pinCreationWindow, AdminWindow adminWindow, AlertWindow alertWindow) throws
-                                                                                                             Exception
+                      PinCreationWindow pinCreationWindow, AdminWindow adminWindow, AlertWindow alertWindow) throws Exception
     {
         super("Skunk Works Timeclock");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
