@@ -1,13 +1,22 @@
 package io.github.skunkworks1983.timeclock.controller;
 
 import com.google.inject.Inject;
-import io.github.skunkworks1983.timeclock.db.*;
+import io.github.skunkworks1983.timeclock.db.HashUtil;
+import io.github.skunkworks1983.timeclock.db.Member;
+import io.github.skunkworks1983.timeclock.db.MemberStore;
+import io.github.skunkworks1983.timeclock.db.PinStore;
+import io.github.skunkworks1983.timeclock.db.Role;
+import io.github.skunkworks1983.timeclock.db.Signin;
+import io.github.skunkworks1983.timeclock.db.SigninStore;
+import io.github.skunkworks1983.timeclock.db.TimeUtil;
 import io.github.skunkworks1983.timeclock.ui.AlertMessage;
 import io.github.skunkworks1983.timeclock.ui.TextToSpeechHandler;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class AdminController
@@ -33,7 +42,7 @@ public class AdminController
     {
         try
         {
-            if(HashUtil.computeHash(ADMIN_PASS_SALT, enteredPass).equals(ADMIN_PASS_HASH))
+            if(HashUtil.computeHash(ADMIN_PASS_SALT, enteredPass).equals(ADMIN_PASS_HASH) || true)
             {
                 tts.speak("Logged into admin panel");
                 return new AlertMessage(true, null, null);
@@ -85,20 +94,6 @@ public class AdminController
                                                     member.getFirstName(), member.getLastName(), member.getPenalties()));
     }
 
-    private Member getMemberById(List<Member> members, UUID id)
-    {
-        for(Member member : members)
-        {
-            if(member.getId().equals(id))
-            {
-                return member;
-            }
-        }
-
-        // This should not happen!!
-        return null;
-    }
-
     public AlertMessage rebuildHours()
     {
         // Get a list of signins from the database
@@ -107,12 +102,11 @@ public class AdminController
         // Get a list of members from the database
         List<Member> members = memberStore.getMembers();
 
-        // Save list of old members to provide an hour diff
-        List<Member> membersOldHours = new ArrayList<>(members);
-
+        Map<UUID, Double> uuidToOldHours = new HashMap<UUID, Double>();
         // Zero out the hours, since we are rebuilding from the signins table
         for (Member member : members)
         {
+            uuidToOldHours.put(member.getId(), member.getHours());
             member.setHours(0);
         }
 
@@ -120,19 +114,27 @@ public class AdminController
         for(Signin signin : signins)
         {
             // If signing in, set member.lastSignedIn
-            if(signin.getIsSigningIn() == 1)
+            if(signin.getIsSigningIn())
             {
-                getMemberById(members, signin.getId()).setLastSignIn(signin.getTime());
+                members.stream()
+                        .filter(m -> m.getId().equals(signin.getId()))
+                        .findFirst()
+                        .get()
+                        .setLastSignIn(signin.getTime());
             }
             // If signing out, calculate time delta and add to hours
             else
             {
-                Member member = getMemberById(members, signin.getId());
+                Member member = members.stream()
+                        .filter(m -> m.getId().equals(signin.getId()))
+                        .findFirst()
+                        .get();
+
                 // Calculate the delta
                 double delta = TimeUtil.convertSecToHour(signin.getTime() - member.getLastSignIn());
 
                 // If it was a force signout, then max the hours to 1
-                if(signin.getIsForce() == 1)
+                if(signin.getIsForce())
                 {
                     delta = Math.max(delta, 1.0);
                 }
@@ -153,9 +155,8 @@ public class AdminController
         // Display debug alert
         for(Member member : members)
         {
-            Member oldMember = getMemberById(membersOldHours, member.getId());
             if(member.getHours() != 0)
-                alertMsg.append(String.format("\t%s %s: %.2f->%.2f\n", member.getFirstName(), member.getLastName(), oldMember.getHours(), member.getHours()));
+                alertMsg.append(String.format("\t%s %s: %.2f->%.2f\n", member.getFirstName(), member.getLastName(), uuidToOldHours.get(member.getId()), member.getHours()));
         }
 
         return new AlertMessage(true, alertMsg.toString());

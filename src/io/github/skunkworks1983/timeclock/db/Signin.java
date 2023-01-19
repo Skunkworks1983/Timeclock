@@ -6,11 +6,11 @@ import java.util.UUID;
 public class Signin {
     private final UUID id;
     private final long time;
-    private int isSigningIn;
-    private int isForce;
+    private boolean isSigningIn;
+    private boolean isForce;
 
     @ConstructorProperties({"id", "time", "issigningin", "isforce"})
-    public Signin(String id, long time, int isSigningIn, int isForce)
+    public Signin(String id, long time, boolean isSigningIn, boolean isForce)
     {
         this.id = UUID.fromString(id);
         this.time = time;
@@ -18,7 +18,7 @@ public class Signin {
         this.isForce = isForce;
     }
 
-    public Signin(UUID id, long time, int isSigningIn, int isForce)
+    public Signin(UUID id, long time, boolean isSigningIn, boolean isForce)
     {
         this.id = id;
         this.time = time;
@@ -34,11 +34,11 @@ public class Signin {
         return time;
     }
 
-    public int getIsSigningIn() {
+    public boolean getIsSigningIn() {
         return isSigningIn;
     }
 
-    public int getIsForce() {
+    public boolean getIsForce() {
         return isForce;
     }
 }

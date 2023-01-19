@@ -114,7 +114,6 @@ public class MemberStore
         DatabaseConnector.runQuery(query -> {
             query.update(MEMBERS)
                     .set(MEMBERS.HOURS, (float) member.getHours())
-                    .set(MEMBERS.ISSIGNEDIN, 0)
                     .where(MEMBERS.ID.eq(member.getId().toString()))
                     .execute();
 
