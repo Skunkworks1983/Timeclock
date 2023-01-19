@@ -242,11 +242,11 @@ public class MemberList extends JList<Member>
             
             if(isSelected)
             {
-                rowPanel.setBackground(Color.LIGHT_GRAY);
+                rowPanel.setBackground(new Color(150, 255, 255));
             }
             else
             {
-                rowPanel.setBackground(Color.WHITE);
+                rowPanel.setBackground(index % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
             }
             
             return rowPanel;
