@@ -39,6 +39,7 @@ public class AdminWindow extends JFrame
     private final JButton createAdminPinButton;
     private final JButton applyPenaltyButton;
     private final JButton rebuildHoursButton;
+    private final JButton groupSignInButton;
     
     private boolean authenticated = false;
     private Member currentAdmin = null;
@@ -76,10 +77,11 @@ public class AdminWindow extends JFrame
         createAdminPinButton = new JButton("6: Set PIN for admin member");
         applyPenaltyButton = new JButton("7: Apply time penalty to member");
         rebuildHoursButton = new JButton("8: Rebuild member hours from signins");
+        groupSignInButton = new JButton("9: Group sign-in/out");
     
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
-        setLayout(new MigLayout("", "[grow]", "[][][][][][][][][]"));
+        setLayout(new MigLayout("", "[grow]", "[][][][][][][][][][]"));
         
         add(instructions, "cell 0 0, grow");
         add(passwordField, "cell 0 1, grow");
@@ -91,6 +93,7 @@ public class AdminWindow extends JFrame
         add(createAdminPinButton, "cell 0 7, grow");
         add(applyPenaltyButton, "cell 0 8, grow");
         add(rebuildHoursButton, "cell 0 9, grow");
+        add(groupSignInButton, "cell 0 10, grow");
         
         pack();
         setLocationRelativeTo(null);
@@ -167,6 +170,9 @@ public class AdminWindow extends JFrame
                         case KeyEvent.VK_8:
                             rebuildHours();
                             break;
+                        case KeyEvent.VK_9:
+                            runGroupSignIn();
+                            break;
                     }
                 }
             }
@@ -180,6 +186,7 @@ public class AdminWindow extends JFrame
         createAdminPinButton.addActionListener(e -> createAdminPin());
         applyPenaltyButton.addActionListener(e -> applyPenalty());
         rebuildHoursButton.addActionListener(e -> rebuildHours());
+        groupSignInButton.addActionListener(e-> runGroupSignIn());
     }
     
     private void showCreateMemberWindow()
@@ -268,6 +275,11 @@ public class AdminWindow extends JFrame
     private void rebuildHours()
     {
         alertWindow.showAlert(adminController.rebuildHours());
+    }
+
+    private void runGroupSignIn()
+    {
+
     }
     
     @Override
