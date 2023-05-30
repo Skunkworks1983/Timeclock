@@ -27,6 +27,7 @@ public class AdminWindow extends JFrame
     private final CreateMemberWindow createMemberWindow;
     private final MemberPickerWindow memberPickerWindow;
     private final PinCreationWindow pinCreationWindow;
+    private final GroupSignInWindow groupSignInWindow;
     private final MainListRefresher mainListRefresher;
     
     private final JLabel instructions;
@@ -51,6 +52,7 @@ public class AdminWindow extends JFrame
                        CreateMemberWindow createMemberWindow,
                        MemberPickerWindow memberPickerWindow,
                        PinCreationWindow pinCreationWindow,
+                       GroupSignInWindow groupSignInWindow,
                        MainListRefresher mainListRefresher)
             throws HeadlessException
     {
@@ -62,6 +64,7 @@ public class AdminWindow extends JFrame
         this.createMemberWindow = createMemberWindow;
         this.memberPickerWindow = memberPickerWindow;
         this.pinCreationWindow = pinCreationWindow;
+        this.groupSignInWindow = groupSignInWindow;
         this.mainListRefresher = mainListRefresher;
         
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -279,7 +282,15 @@ public class AdminWindow extends JFrame
 
     private void runGroupSignIn()
     {
-
+        alertWindow.showAlert(new AlertMessage(true, "Choose an admin to start/end the sessions.", () -> {
+            memberPickerWindow.getMemberListPanel().getMemberList().setRoleFilter(Collections.singleton(Role.ADMIN));
+            memberPickerWindow.getMemberListPanel().getMemberList().setSelectionCallback(member -> {
+               groupSignInWindow.setCurrentAdmin(member);
+               memberPickerWindow.setVisible(false);
+               groupSignInWindow.setVisible(true);
+            });
+            memberPickerWindow.setVisible(true);
+        }));
     }
     
     @Override
@@ -322,6 +333,8 @@ public class AdminWindow extends JFrame
         applyPenaltyButton.setVisible(authenticated);
         rebuildHoursButton.setEnabled(authenticated);
         rebuildHoursButton.setVisible(authenticated);
+        groupSignInButton.setEnabled(authenticated);
+        groupSignInButton.setVisible(authenticated);
         
         pack();
         setLocationRelativeTo(null);

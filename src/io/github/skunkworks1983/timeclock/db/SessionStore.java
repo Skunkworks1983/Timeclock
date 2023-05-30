@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 
 import static io.github.skunkworks1983.timeclock.db.generated.tables.Sessions.SESSIONS;
+import static io.github.skunkworks1983.timeclock.db.generated.tables.Signins.SIGNINS;
 
 public class SessionStore
 {
@@ -75,10 +76,8 @@ public class SessionStore
             long openSessions = query.select()
                                      .from(SESSIONS)
                                      .where(SESSIONS.START.le(now)
-                                                          .and(SESSIONS.END.eq(
-                                                                               0L)
-                                                                           .or(SESSIONS.END.ge(
-                                                                                   now))
+                                                          .and(SESSIONS.END.eq(0L)
+                                                                           .or(SESSIONS.END.ge(now))
                                                               )
                                            )
                                      .fetch()
@@ -114,5 +113,32 @@ public class SessionStore
             }
             return total;
         });
+    }
+    
+    public void createPreviousSession(Member createdBy, long start, long end)
+    {
+        if(createdBy.getRole().equals(Role.ADMIN) && !hasOverlappingSession(start) && !hasOverlappingSession(end))
+        {
+            DatabaseConnector.runQuery(query -> {
+                query.insertInto(SESSIONS)
+                     .values(scheduleStore.getScheduleOverlap(TimeUtil.getDateTime(start), TimeUtil.getDateTime(end)),
+                             createdBy.getId().toString(),
+                             createdBy.getId().toString(),
+                             start,
+                             end)
+                     .execute();
+                
+                return null;
+            });
+        }
+    }
+    
+    public boolean hasOverlappingSession(long time)
+    {
+        // TODO this doesn't handle the case where the new session fully contains an old session
+        return DatabaseConnector.runQuery(query -> query.selectFrom(SESSIONS)
+                                                        .where(SESSIONS.START.lessThan(time),
+                                                               SESSIONS.END.greaterThan(time))
+                                                        .fetchAny() != null);
     }
 }
