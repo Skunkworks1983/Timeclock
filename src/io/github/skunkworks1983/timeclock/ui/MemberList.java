@@ -135,7 +135,19 @@ public class MemberList extends JList<Member>
                                .filter(member -> roleFilter.contains(member.getRole()))
                                .toArray(Member[]::new));
     }
-    
+
+    public void enableMultiselect(boolean enabled)
+    {
+        if(enabled)
+        {
+            setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        }
+        else
+        {
+            setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        }
+    }
+
     private static class MemberListCellRenderer implements ListCellRenderer<Member>
     {
         private final SessionController sessionController;

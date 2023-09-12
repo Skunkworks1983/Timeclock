@@ -6,6 +6,7 @@ import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
 import io.github.skunkworks1983.timeclock.db.PinStore;
 import io.github.skunkworks1983.timeclock.db.Role;
+import io.github.skunkworks1983.timeclock.db.SessionStore;
 import io.github.skunkworks1983.timeclock.db.Signin;
 import io.github.skunkworks1983.timeclock.db.SigninStore;
 import io.github.skunkworks1983.timeclock.db.TimeUtil;
@@ -13,7 +14,10 @@ import io.github.skunkworks1983.timeclock.ui.AlertMessage;
 import io.github.skunkworks1983.timeclock.ui.TextToSpeechHandler;
 
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,14 +30,17 @@ public class AdminController
     private final MemberStore memberStore;
     private final SigninStore signinStore;
     private final PinStore pinStore;
+    private final SessionStore sessionStore;
     private final TextToSpeechHandler tts;
     
     @Inject
-    public AdminController(MemberStore memberStore, SigninStore signinStore, PinStore pinStore, TextToSpeechHandler tts)
+    public AdminController(MemberStore memberStore, SigninStore signinStore, PinStore pinStore, SessionStore sessionStore,
+                           TextToSpeechHandler tts)
     {
         this.memberStore = memberStore;
         this.signinStore = signinStore;
         this.pinStore = pinStore;
+        this.sessionStore = sessionStore;
         this.tts = tts;
     }
     
@@ -163,5 +170,50 @@ public class AdminController
         }
         
         return new AlertMessage(true, alertMsg.toString());
+    }
+    
+    public AlertMessage createGroupSignIn(List<Member> members, Member admin, OffsetDateTime start, OffsetDateTime end)
+    {
+        if(!admin.getRole().equals(Role.ADMIN))
+        {
+            return new AlertMessage(false, String.format("%s %s is not an admin.", admin.getFirstName(), admin.getLastName()));
+        }
+        
+        List<Member> alreadySignedInMembers = new LinkedList<>();
+        long startSecond = start.toEpochSecond();
+        long endSecond = end.toEpochSecond();
+        for(Member m: members)
+        {
+            if(signinStore.hasOverlappingSignIn(m, startSecond)
+            || signinStore.hasOverlappingSignIn(m, endSecond))
+            {
+                alreadySignedInMembers.add(m);
+            }
+        }
+        
+        if(alreadySignedInMembers.isEmpty())
+        {
+            if(sessionStore.hasOverlappingSession(startSecond) || sessionStore.hasOverlappingSession(endSecond))
+            {
+                return new AlertMessage(false, "There is an existing session that conflicts with the given time period.");
+            }
+            sessionStore.createPreviousSession(admin, startSecond, endSecond);
+            for(Member m: members)
+            {
+                memberStore.addPreviousSignIn(m, startSecond, endSecond);
+            }
+            
+            tts.speak("Group retroactively signed in");
+            return new AlertMessage(true, String.format("%d members signed in from %s to %s by %s %s.",
+                                                        members.size(),
+                                                        TimeUtil.formatTime(startSecond),
+                                                        TimeUtil.formatTime(endSecond),
+                                                        admin.getFirstName(),
+                                                        admin.getLastName()));
+        }
+        else
+        {
+            return new AlertMessage(false, String.format("%d members have conflicting sign-ins with the given time period.", alreadySignedInMembers.size()));
+        }
     }
 }

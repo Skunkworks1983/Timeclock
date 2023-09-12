@@ -7,8 +7,8 @@ import io.github.skunkworks1983.timeclock.db.generated.tables.records.SigninsRec
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static io.github.skunkworks1983.timeclock.db.generated.tables.Signins.SIGNINS;
 import static io.github.skunkworks1983.timeclock.db.generated.tables.Members.MEMBERS;
+import static io.github.skunkworks1983.timeclock.db.generated.tables.Signins.SIGNINS;
 
 public class MemberStore
 {
@@ -20,17 +20,18 @@ public class MemberStore
         this.sessionStore = sessionStore;
     }
     
-    public List<Member> getMembers() {
+    public List<Member> getMembers()
+    {
         List<Member> memberList = DatabaseConnector
                 .runQuery(query -> {
                     List<Member> members = query.selectFrom(MEMBERS)
-                            .orderBy(MEMBERS.LASTNAME.asc(),
-                                    MEMBERS.FIRSTNAME.asc())
-                            .fetch()
-                            .into(Member.class);
+                                                .orderBy(MEMBERS.LASTNAME.asc(),
+                                                         MEMBERS.FIRSTNAME.asc())
+                                                .fetch()
+                                                .into(Member.class);
                     return members;
                 });
-
+        
         return memberList;
     }
     
@@ -108,20 +109,47 @@ public class MemberStore
         }
     }
     
+    public void addPreviousSignIn(Member member, long signInTime, long signOutTime)
+    {
+        long memberTimeSec = TimeUtil.convertHourToSec(member.getHours());
+        memberTimeSec += signOutTime - signInTime;
+        memberTimeSec = Math.max(memberTimeSec, 0);
+        member.setHours(TimeUtil.convertSecToHour(memberTimeSec));
+        
+        DatabaseConnector.runQuery(query -> {
+            query.update(MEMBERS)
+                 .set(MEMBERS.HOURS, (float) member.getHours())
+                 .where(MEMBERS.ID.eq(member.getId().toString()))
+                 .execute();
+            
+            return null;
+        });
+        
+        DatabaseConnector.runQuery(query -> {
+            query.insertInto(SIGNINS)
+                 .set(new SigninsRecord(member.getId().toString(), signInTime, 1, 0, sessionStore.getSessionId(signInTime).toString()))
+                 .newRecord()
+                 .set(new SigninsRecord(member.getId().toString(), signOutTime, 0, 0, sessionStore.getSessionId(signOutTime).toString()))
+                 .execute();
+            
+            return null;
+        });
+    }
+    
     public boolean createMember(Member member)
     {
         return DatabaseConnector.runQuery(query -> query.executeInsert(query.newRecord(MEMBERS, member))) > 0;
     }
-
+    
     // Invoked by the RebuildController. Will overwrite the member's hours in the database.
     public void writeMemberHours(Member member)
     {
         DatabaseConnector.runQuery(query -> {
             query.update(MEMBERS)
-                    .set(MEMBERS.HOURS, (float) member.getHours())
-                    .where(MEMBERS.ID.eq(member.getId().toString()))
-                    .execute();
-
+                 .set(MEMBERS.HOURS, (float) member.getHours())
+                 .where(MEMBERS.ID.eq(member.getId().toString()))
+                 .execute();
+            
             return null;
         });
     }
@@ -129,11 +157,11 @@ public class MemberStore
     public void applyPenalty(Member member)
     {
         DatabaseConnector.runQuery(query -> {
-           query.update(MEMBERS)
-                .set(MEMBERS.PENALTIES, member.getPenalties() + 1)
-                .where(MEMBERS.ID.eq(member.getId().toString()))
-                .execute();
-           return null;
+            query.update(MEMBERS)
+                 .set(MEMBERS.PENALTIES, member.getPenalties() + 1)
+                 .where(MEMBERS.ID.eq(member.getId().toString()))
+                 .execute();
+            return null;
         });
         member.setPenalties(member.getPenalties() + 1);
     }

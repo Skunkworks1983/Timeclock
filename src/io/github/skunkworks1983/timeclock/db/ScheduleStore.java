@@ -51,7 +51,9 @@ public class ScheduleStore
         
         if(end.toLocalDate().isAfter(start.toLocalDate()) || end.toLocalTime().isAfter(daySchedule.getEnd()))
         {
-            intervalEnd = intervalEnd.withHour(daySchedule.getEnd().getHour())
+            intervalEnd = intervalEnd.withMonth(start.getMonthValue()) // session should never be long enough to wrap to next day
+                                     .withDayOfMonth(start.getDayOfMonth())
+                                     .withHour(daySchedule.getEnd().getHour())
                                      .withMinute(daySchedule.getEnd().getMinute())
                                      .withSecond(0);
         }

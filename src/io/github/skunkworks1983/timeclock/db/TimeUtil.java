@@ -33,4 +33,9 @@ public class TimeUtil
     {
         return (long) (hours * 60 * 60);
     }
+    
+    public static long getEpochSeconds(LocalDateTime dateTime)
+    {
+        return dateTime.toEpochSecond(OffsetDateTime.now().getOffset());
+    }
 }
