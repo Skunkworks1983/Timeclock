@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 import static io.github.skunkworks1983.timeclock.db.generated.tables.Sessions.SESSIONS;
 
@@ -34,7 +35,7 @@ public class SessionStore
                                               .toEpochSecond();
                 }
                 query.insertInto(SESSIONS)
-                     .values(0, startedBy.getId().toString(), null, startTime, 0)
+                     .values(UUID.randomUUID().toString(), 0, startedBy.getId().toString(), null, startTime, 0)
                      .execute();
                 return startTime;
             });
@@ -87,6 +88,47 @@ public class SessionStore
             return openSessions > 0;
         });
         return result != null && result;
+    }
+    
+    public UUID getOpenSessionId()
+    {
+        if(isSessionActive())
+        {
+            return DatabaseConnector.runQuery((query) -> {
+                long now = TimeUtil.getCurrentTimestamp();
+                String sessionId = query.select()
+                     .from(SESSIONS)
+                     .where(SESSIONS.START.le(now)
+                                          .and(SESSIONS.END.eq(
+                                                               0L)
+                                                           .or(SESSIONS.END.ge(
+                                                                   now))
+                                              )
+                           )
+                        .fetchOne(SESSIONS.ID);
+                return UUID.fromString(sessionId);
+            });
+        }
+        return null;
+    }
+    
+    public UUID getSessionId(long time)
+    {
+        String sessionId = DatabaseConnector.runQuery((query) -> {
+            long now = TimeUtil.getCurrentTimestamp();
+            return query.select()
+                        .from(SESSIONS)
+                        .where(SESSIONS.START.le(time)
+                                             .and(SESSIONS.END.eq(
+                                                                  0L)
+                                                              .or(SESSIONS.END.ge(
+                                                                      time))
+                                                 )
+                              )
+                        .fetchOne(SESSIONS.ID);
+        });
+        
+        return sessionId == null ? null : UUID.fromString(sessionId);
     }
     
     public long getQueuedSessionStart()

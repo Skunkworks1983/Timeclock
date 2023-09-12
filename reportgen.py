@@ -8,7 +8,11 @@ logger = logging.getLogger(__name__)
 
 def main(args):
     conn = sqlite3.connect(args.dbfile)
-    cur = conn.execute('SELECT * from SignIns WHERE id=? ORDER BY time', (args.id,))
+    id = conn.execute('SELECT id FROM Members WHERE firstName=? AND lastName=?', (args.firstName,args.lastName,)).fetchone()[0]
+    if id is None:
+        logger.warning('Could not find ID')
+        return
+    cur = conn.execute('SELECT * from SignIns WHERE id=? ORDER BY time', (id,))
 
     intervals = []
     total = 0
@@ -49,7 +53,8 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dbfile')
-    parser.add_argument('id')
+    parser.add_argument('firstName')
+    parser.add_argument('lastName')
     parser.add_argument('outfile')
 
     args = parser.parse_args()

@@ -117,7 +117,7 @@ public class AdminController
             if(signin.getIsSigningIn())
             {
                 members.stream()
-                       .filter(m -> m.getId().equals(signin.getId()))
+                       .filter(m -> m.getId().equals(signin.getMemberId()))
                        .findFirst()
                        .get()
                        .setLastSignIn(signin.getTime());
@@ -126,7 +126,7 @@ public class AdminController
             else
             {
                 Member member = members.stream()
-                                       .filter(m -> m.getId().equals(signin.getId()))
+                                       .filter(m -> m.getId().equals(signin.getMemberId()))
                                        .findFirst()
                                        .get();
                 

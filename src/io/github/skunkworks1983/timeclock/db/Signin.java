@@ -4,30 +4,24 @@ import java.beans.ConstructorProperties;
 import java.util.UUID;
 
 public class Signin {
-    private final UUID id;
+    private final UUID memberId;
     private final long time;
     private boolean isSigningIn;
     private boolean isForce;
+    private final UUID sessionId;
 
-    @ConstructorProperties({"id", "time", "issigningin", "isforce"})
-    public Signin(String id, long time, boolean isSigningIn, boolean isForce)
+    @ConstructorProperties({"memberId", "time", "issigningin", "isforce", "sessionId"})
+    public Signin(String memberId, long time, boolean isSigningIn, boolean isForce, UUID sessionId)
     {
-        this.id = UUID.fromString(id);
+        this.memberId = UUID.fromString(memberId);
         this.time = time;
         this.isSigningIn = isSigningIn;
         this.isForce = isForce;
+        this.sessionId = sessionId;
     }
 
-    public Signin(UUID id, long time, boolean isSigningIn, boolean isForce)
-    {
-        this.id = id;
-        this.time = time;
-        this.isSigningIn = isSigningIn;
-        this.isForce = isForce;
-    }
-
-    public UUID getId() {
-        return id;
+    public UUID getMemberId() {
+        return memberId;
     }
 
     public long getTime() {
@@ -40,5 +34,10 @@ public class Signin {
 
     public boolean getIsForce() {
         return isForce;
+    }
+    
+    public UUID getSessionId()
+    {
+        return sessionId;
     }
 }
