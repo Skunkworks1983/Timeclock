@@ -1,6 +1,7 @@
 /jooq-codegen/src/
 /out/
 /out/*
+.idea/codeStyles/Project.xml
 awsCreds.json
 */awsCreds.json
 testtable-*
