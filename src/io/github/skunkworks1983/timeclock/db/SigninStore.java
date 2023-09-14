@@ -29,7 +29,7 @@ public class SigninStore
         long lastSignInBefore = DatabaseConnector.runQuery(query -> {
             Record1<Long> result = query.select(SIGNINS.TIME)
                                         .from(SIGNINS)
-                                        .where(SIGNINS.TIME.lessThan(time), SIGNINS.ID.eq(member.getId().toString()), SIGNINS.ISSIGNINGIN.eq(1))
+                                        .where(SIGNINS.TIME.lessThan(time), SIGNINS.MEMBERID.eq(member.getId().toString()), SIGNINS.ISSIGNINGIN.eq(1))
                                         .orderBy(SIGNINS.TIME.desc())
                                         .fetchAny();
             
@@ -44,7 +44,7 @@ public class SigninStore
         long firstSignOutAfter = DatabaseConnector.runQuery(query -> {
             Record1<Long> result = query.select(SIGNINS.TIME)
                                .from(SIGNINS)
-                               .where(SIGNINS.TIME.greaterThan(lastSignInBefore), SIGNINS.ID.eq(member.getId().toString()), SIGNINS.ISSIGNINGIN.eq(0))
+                               .where(SIGNINS.TIME.greaterThan(lastSignInBefore), SIGNINS.MEMBERID.eq(member.getId().toString()), SIGNINS.ISSIGNINGIN.eq(0))
                                .orderBy(SIGNINS.TIME.asc())
                                .fetchAny();
     

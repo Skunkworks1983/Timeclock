@@ -5,6 +5,7 @@ import io.github.skunkworks1983.timeclock.db.generated.tables.Signins;
 import io.github.skunkworks1983.timeclock.db.generated.tables.records.SigninsRecord;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static io.github.skunkworks1983.timeclock.db.generated.tables.Members.MEMBERS;
@@ -56,10 +57,11 @@ public class MemberStore
                 
                 return null;
             });
-            
+    
+            UUID sessionId = sessionStore.getSessionId(signInTime);
             DatabaseConnector.runQuery(query -> {
                 query.insertInto(SIGNINS)
-                     .set(new SigninsRecord(member.getId().toString(), member.getLastSignIn(), 1, 0, sessionStore.getSessionId(signInTime).toString()))
+                     .set(new SigninsRecord(member.getId().toString(), member.getLastSignIn(), 1, 0, sessionId == null ? "" : sessionId.toString()))
                      .execute();
                 return null;
             });
@@ -100,9 +102,11 @@ public class MemberStore
                 
                 return null;
             });
+            
+            UUID sessionId = sessionStore.getOpenSessionId();
             DatabaseConnector.runQuery(query -> {
                 query.insertInto(SIGNINS)
-                     .set(new SigninsRecord(member.getId().toString(), currentTimestamp, 0, force ? 1 : 0, sessionStore.getOpenSessionId().toString()))
+                     .set(new SigninsRecord(member.getId().toString(), currentTimestamp, 0, force ? 1 : 0, sessionId == null ? "" : sessionId.toString()))
                      .execute();
                 return null;
             });
@@ -126,10 +130,11 @@ public class MemberStore
         });
         
         DatabaseConnector.runQuery(query -> {
+            UUID sessionId = sessionStore.getSessionId(signInTime);
             query.insertInto(SIGNINS)
-                 .set(new SigninsRecord(member.getId().toString(), signInTime, 1, 0, sessionStore.getSessionId(signInTime).toString()))
+                 .set(new SigninsRecord(member.getId().toString(), signInTime, 1, 0, sessionId == null ? "" : sessionId.toString()))
                  .newRecord()
-                 .set(new SigninsRecord(member.getId().toString(), signOutTime, 0, 0, sessionStore.getSessionId(signOutTime).toString()))
+                 .set(new SigninsRecord(member.getId().toString(), signOutTime, 0, 0, sessionId == null ? "" : sessionId.toString()))
                  .execute();
             
             return null;
