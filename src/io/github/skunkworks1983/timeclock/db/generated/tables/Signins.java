@@ -10,7 +10,7 @@ import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row4;
+import org.jooq.Row5;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -42,9 +42,9 @@ public class Signins extends TableImpl<SigninsRecord> {
     }
 
     /**
-     * The column <code>SignIns.id</code>.
+     * The column <code>SignIns.memberId</code>.
      */
-    public final TableField<SigninsRecord, String> ID = createField(DSL.name("id"), SQLDataType.VARCHAR(36), this, "");
+    public final TableField<SigninsRecord, String> MEMBERID = createField(DSL.name("memberId"), SQLDataType.VARCHAR(36), this, "");
 
     /**
      * The column <code>SignIns.time</code>.
@@ -60,6 +60,11 @@ public class Signins extends TableImpl<SigninsRecord> {
      * The column <code>SignIns.isForce</code>.
      */
     public final TableField<SigninsRecord, Integer> ISFORCE = createField(DSL.name("isForce"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>SignIns.sessionId</code>.
+     */
+    public final TableField<SigninsRecord, String> SESSIONID = createField(DSL.name("sessionId"), SQLDataType.VARCHAR(36), this, "");
 
     private Signins(Name alias, Table<SigninsRecord> aliased) {
         this(alias, aliased, null);
@@ -126,11 +131,11 @@ public class Signins extends TableImpl<SigninsRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row4 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<String, Long, Integer, Integer> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row5<String, Long, Integer, Integer, String> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 }
