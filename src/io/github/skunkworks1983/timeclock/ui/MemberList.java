@@ -216,7 +216,7 @@ public class MemberList extends JList<Member>
                 hours.setText(String.format("%3.1f", value.getHours()));
             }
             
-            rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150:][grow][280:][150!]", "[30!]"));
+            rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150:][grow][300:][180!]", "[30!]"));
             
             rowPanel.add(rowLabel, "cell 0 0");
             rowPanel.add(firstName, "cell 1 0");
