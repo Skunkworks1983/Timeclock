@@ -195,40 +195,20 @@ public class MemberList extends JList<Member>
             JLabel requirementMet = new JLabel();
             if(value.getRole().equals(Role.STUDENT))
             {
-                double baselineHours = sessionController.calculateScheduledHours();
+                double baselineHours = Math.max(sessionController.calculateScheduledHours(), 1./60);
                 double penaltyAdjustedHours = value.getHours() * (1 - 0.1 * value.getPenalties());
+                double percentage = (penaltyAdjustedHours/baselineHours) * 100;
+                requirementMet.setText(String.format("(%2.0f%%)", percentage));
                 if(penaltyAdjustedHours > 0.9 * baselineHours)
                 {
-                    if(greenCircleIcon != null)
-                    {
-                        requirementMet.setIcon(greenCircleIcon);
-                    }
-                    else
-                    {
-                        hours.setForeground(new Color(0, 200, 0));
-                    }
+                    requirementMet.setForeground(new Color(0, 200, 0));
                 }
                 else if(penaltyAdjustedHours > 0.8 * baselineHours)
                 {
-                    if(yellowCheckIcon != null)
-                    {
-                        requirementMet.setIcon(yellowCheckIcon);
-                    }
-                    else
-                    {
-                        hours.setForeground(new Color(225, 200, 0));
-                    }
-                }
+                    requirementMet.setForeground(new Color(225, 200, 0));}
                 else
                 {
-                    if(redXIcon != null)
-                    {
-                        requirementMet.setIcon(redXIcon);
-                    }
-                    else
-                    {
-                        hours.setForeground(new Color(200, 0, 0));
-                    }
+                    requirementMet.setForeground(new Color(200, 0, 0));
                 }
             }
             else
@@ -236,7 +216,7 @@ public class MemberList extends JList<Member>
                 hours.setText(String.format("%3.1f", value.getHours()));
             }
             
-            rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150:][grow][300:][100:]", "[30!]"));
+            rowPanel.setLayout(new MigLayout("fillx, insets 2", "[40!][150:][grow][280:][150!]", "[30!]"));
             
             rowPanel.add(rowLabel, "cell 0 0");
             rowPanel.add(firstName, "cell 1 0");
@@ -244,12 +224,12 @@ public class MemberList extends JList<Member>
             rowPanel.add(signInTime, "cell 3 0");
             if(value.getRole().equals(Role.STUDENT))
             {
-                rowPanel.add(requirementMet, "cell 4 0, split 2");
-                rowPanel.add(hours, "cell 4 0");
+                rowPanel.add(hours, "cell 4 0, split 2");
+                rowPanel.add(requirementMet, "cell 4 0");
             }
             else
             {
-                rowPanel.add(hours);
+                rowPanel.add(hours, "cell 4 0");
             }
             
             if(isSelected)
