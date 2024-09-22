@@ -162,8 +162,11 @@ public class SessionStore
         if(createdBy.getRole().equals(Role.ADMIN) && !hasOverlappingSession(start) && !hasOverlappingSession(end))
         {
             DatabaseConnector.runQuery(query -> {
+                String sessionId = UUID.randomUUID().toString();
+                sessionId = "0000" + sessionId.substring(4);
                 query.insertInto(SESSIONS)
-                     .values(scheduleStore.getScheduleOverlap(TimeUtil.getDateTime(start), TimeUtil.getDateTime(end)),
+                     .values(sessionId,
+                             scheduleStore.getScheduleOverlap(TimeUtil.getDateTime(start), TimeUtil.getDateTime(end)),
                              createdBy.getId().toString(),
                              createdBy.getId().toString(),
                              start,
