@@ -152,14 +152,14 @@ public class MemberList extends JList<Member>
     {
         private final SessionController sessionController;
         
-        private ImageIcon greenCircleIcon;
-        private ImageIcon yellowCheckIcon;
-        private ImageIcon redXIcon;
+        private ImageIcon greenCircleIcon = null;
+        private ImageIcon yellowCheckIcon = null;
+        private ImageIcon redXIcon = null;
         
         public MemberListCellRenderer(SessionController sessionController)
         {
             this.sessionController = sessionController;
-    
+            /*
             try
             {
                 greenCircleIcon = new ImageIcon(
@@ -177,6 +177,7 @@ public class MemberList extends JList<Member>
                 yellowCheckIcon = null;
                 redXIcon = null;
             }
+            */
         }
         
         @Override
@@ -197,6 +198,7 @@ public class MemberList extends JList<Member>
             {
                 double baselineHours = sessionController.calculateScheduledHours();
                 double penaltyAdjustedHours = value.getHours() * (1 - 0.1 * value.getPenalties());
+                double percentage = baselineHours > 0 ? 100*penaltyAdjustedHours/baselineHours : 0;
                 if(penaltyAdjustedHours > 0.9 * baselineHours)
                 {
                     if(greenCircleIcon != null)
@@ -205,7 +207,8 @@ public class MemberList extends JList<Member>
                     }
                     else
                     {
-                        hours.setForeground(new Color(0, 200, 0));
+                        requirementMet.setText(String.format("%3.0f%%", percentage));
+                        requirementMet.setForeground(new Color(0, 200, 0));
                     }
                 }
                 else if(penaltyAdjustedHours > 0.8 * baselineHours)
@@ -216,7 +219,8 @@ public class MemberList extends JList<Member>
                     }
                     else
                     {
-                        hours.setForeground(new Color(225, 200, 0));
+                        requirementMet.setText(String.format("%3.0f%%", percentage));
+                        requirementMet.setForeground(new Color(225, 200, 0));
                     }
                 }
                 else
@@ -227,7 +231,8 @@ public class MemberList extends JList<Member>
                     }
                     else
                     {
-                        hours.setForeground(new Color(200, 0, 0));
+                        requirementMet.setText(String.format("%3.0f%%", percentage));
+                        requirementMet.setForeground(new Color(200, 0, 0));
                     }
                 }
             }
@@ -244,8 +249,8 @@ public class MemberList extends JList<Member>
             rowPanel.add(signInTime, "cell 3 0");
             if(value.getRole().equals(Role.STUDENT))
             {
-                rowPanel.add(requirementMet, "cell 4 0, split 2");
-                rowPanel.add(hours, "cell 4 0");
+                rowPanel.add(hours, "cell 4 0, split 2");
+                rowPanel.add(requirementMet, "cell 4 0");
             }
             else
             {

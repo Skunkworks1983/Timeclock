@@ -18,10 +18,10 @@ public class ScheduleStore
         scheduleMap = new HashMap<>();
         
         // baseline meeting schedule
-        scheduleMap.put(DayOfWeek.MONDAY, new DaySchedule("18:00", "20:30"));
-        scheduleMap.put(DayOfWeek.TUESDAY, new DaySchedule("18:00", "20:30"));
-        scheduleMap.put(DayOfWeek.WEDNESDAY, new DaySchedule("18:00", "20:30"));
-        scheduleMap.put(DayOfWeek.THURSDAY, new DaySchedule("18:00", "20:30"));
+        scheduleMap.put(DayOfWeek.MONDAY, new DaySchedule("18:00", "21:00"));
+        scheduleMap.put(DayOfWeek.TUESDAY, new DaySchedule("18:00", "21:00"));
+        scheduleMap.put(DayOfWeek.WEDNESDAY, new DaySchedule("18:00", "21:00"));
+        scheduleMap.put(DayOfWeek.THURSDAY, new DaySchedule("18:00", "21:00"));
         scheduleMap.put(DayOfWeek.FRIDAY, new DaySchedule("00:00", "00:00"));
         scheduleMap.put(DayOfWeek.SATURDAY, new DaySchedule("11:00", "16:00"));
         scheduleMap.put(DayOfWeek.SUNDAY, new DaySchedule("00:00", "00:00"));

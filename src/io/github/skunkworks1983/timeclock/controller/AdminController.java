@@ -162,7 +162,8 @@ public class AdminController
         // Display debug alert
         for(Member member : members)
         {
-            if(member.getHours() != 0)
+            if(member.getHours() != 0 && !(uuidToOldHours.get(member.getId()) - 0.5 < member.getHours()
+                    && member.getHours() < uuidToOldHours.get(member.getId()) + 0.5))
             {
                 alertMsg.append(String.format("\t%s %s: %.2f->%.2f\n", member.getFirstName(), member.getLastName(),
                                               uuidToOldHours.get(member.getId()), member.getHours()));
