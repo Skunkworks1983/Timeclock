@@ -12,12 +12,12 @@ def main(args):
     if id is None:
         logger.warning('Could not find ID')
         return
-    cur = conn.execute('SELECT * from SignIns WHERE id=? ORDER BY time', (id,))
+    cur = conn.execute('SELECT * from SignIns WHERE memberid=? ORDER BY time', (id,))
 
     intervals = []
     total = 0
     last_sign_in = None
-    for _, timestamp, sign_in, is_force in cur.fetchall():
+    for _, timestamp, sign_in, is_force, session_id in cur.fetchall():
         timestamp = datetime.fromtimestamp(timestamp)
         if sign_in:
             last_sign_in = timestamp
