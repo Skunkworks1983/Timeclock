@@ -75,18 +75,22 @@ public class MemberStore
     
     public void signOut(Member member, boolean force)
     {
+        signOut(member, force, TimeUtil.getCurrentTimestamp());
+    }
+    
+    public void signOut(Member member, boolean force, long time)
+    {
         if(member.isSignedIn())
         {
             long memberTimeSec = TimeUtil.convertHourToSec(member.getHours());
-            long currentTimestamp = TimeUtil.getCurrentTimestamp();
             if(force)
             {
-                memberTimeSec += Math.min(currentTimestamp - member.getLastSignIn(),
+                memberTimeSec += Math.min(time - member.getLastSignIn(),
                                           TimeUnit.HOURS.toSeconds(1));
             }
             else
             {
-                memberTimeSec += currentTimestamp - member.getLastSignIn();
+                memberTimeSec += time - member.getLastSignIn();
             }
             
             memberTimeSec = Math.max(memberTimeSec, 0);
@@ -106,7 +110,7 @@ public class MemberStore
             UUID sessionId = sessionStore.getOpenSessionId();
             DatabaseConnector.runQuery(query -> {
                 query.insertInto(SIGNINS)
-                     .set(new SigninsRecord(member.getId().toString(), currentTimestamp, 0, force ? 1 : 0, sessionId == null ? "" : sessionId.toString()))
+                     .set(new SigninsRecord(member.getId().toString(), time, 0, force ? 1 : 0, sessionId == null ? "" : sessionId.toString()))
                      .execute();
                 return null;
             });

@@ -94,7 +94,7 @@ public class SignInController
                                                                  member.getLastName()));
                 }
             }
-            else
+            else if(member.getRole().equals(Role.ADMIN))
             {
                 if(pinStore.checkPin(member.getId(), pin))
                 {
@@ -128,6 +128,10 @@ public class SignInController
                     return new AlertMessage(false, String.format("Wrong PIN entered for %s %s.", member.getFirstName(),
                                                                  member.getLastName()));
                 }
+            }
+            else
+            {
+                return new AlertMessage(false, "Unknown role: " + member.getRole().name());
             }
             
         }

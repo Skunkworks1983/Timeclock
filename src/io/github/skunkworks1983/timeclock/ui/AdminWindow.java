@@ -41,6 +41,7 @@ public class AdminWindow extends JFrame
     private final JButton applyPenaltyButton;
     private final JButton rebuildHoursButton;
     private final JButton groupSignInButton;
+    private final JButton fixAdminForgotSignOutButton;
     
     private boolean authenticated = false;
     private Member currentAdmin = null;
@@ -81,10 +82,11 @@ public class AdminWindow extends JFrame
         applyPenaltyButton = new JButton("7: Apply time penalty to member");
         rebuildHoursButton = new JButton("8: Rebuild member hours from signins");
         groupSignInButton = new JButton("9: Group sign-in/out");
+        fixAdminForgotSignOutButton = new JButton("Fix admin forgot to sign out");
     
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
-        setLayout(new MigLayout("", "[grow]", "[][][][][][][][][][]"));
+        setLayout(new MigLayout("", "[grow]", "[][][][][][][][][][][]"));
         
         add(instructions, "cell 0 0, grow");
         add(passwordField, "cell 0 1, grow");
@@ -97,6 +99,7 @@ public class AdminWindow extends JFrame
         add(applyPenaltyButton, "cell 0 8, grow");
         add(rebuildHoursButton, "cell 0 9, grow");
         add(groupSignInButton, "cell 0 10, grow");
+        add(fixAdminForgotSignOutButton, "cell 0 11, grow");
         
         pack();
         setLocationRelativeTo(null);
@@ -190,6 +193,7 @@ public class AdminWindow extends JFrame
         applyPenaltyButton.addActionListener(e -> applyPenalty());
         rebuildHoursButton.addActionListener(e -> rebuildHours());
         groupSignInButton.addActionListener(e-> runGroupSignIn());
+        fixAdminForgotSignOutButton.addActionListener(e -> fixAdminForgotSignOut());
     }
     
     private void showCreateMemberWindow()
@@ -293,6 +297,11 @@ public class AdminWindow extends JFrame
         }));
     }
     
+    private void fixAdminForgotSignOut()
+    {
+        alertWindow.showAlert(adminController.fixAdminForgotSignOut());
+    }
+    
     @Override
     public void setVisible(boolean b)
     {
@@ -335,6 +344,8 @@ public class AdminWindow extends JFrame
         rebuildHoursButton.setVisible(authenticated);
         groupSignInButton.setEnabled(authenticated);
         groupSignInButton.setVisible(authenticated);
+        fixAdminForgotSignOutButton.setEnabled(authenticated);
+        fixAdminForgotSignOutButton.setVisible(authenticated);
         
         pack();
         setLocationRelativeTo(null);

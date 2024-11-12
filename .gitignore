@@ -1,8 +1,11 @@
 /jooq-codegen/src/
 /out/
 /out/*
+/lib/
+/lib/*
 .idea/codeStyles/Project.xml
 awsCreds.json
 */awsCreds.json
 testtable-*
 logintable*
+*.csv

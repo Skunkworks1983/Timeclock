@@ -1,11 +1,13 @@
 package io.github.skunkworks1983.timeclock.controller;
 
 import com.google.inject.Inject;
+import io.github.skunkworks1983.timeclock.db.DaySchedule;
 import io.github.skunkworks1983.timeclock.db.HashUtil;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
 import io.github.skunkworks1983.timeclock.db.PinStore;
 import io.github.skunkworks1983.timeclock.db.Role;
+import io.github.skunkworks1983.timeclock.db.ScheduleStore;
 import io.github.skunkworks1983.timeclock.db.SessionStore;
 import io.github.skunkworks1983.timeclock.db.Signin;
 import io.github.skunkworks1983.timeclock.db.SigninStore;
@@ -21,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AdminController
 {
@@ -31,16 +35,18 @@ public class AdminController
     private final SigninStore signinStore;
     private final PinStore pinStore;
     private final SessionStore sessionStore;
+    private final ScheduleStore scheduleStore;
     private final TextToSpeechHandler tts;
     
     @Inject
     public AdminController(MemberStore memberStore, SigninStore signinStore, PinStore pinStore, SessionStore sessionStore,
-                           TextToSpeechHandler tts)
+                           ScheduleStore scheduleStore, TextToSpeechHandler tts)
     {
         this.memberStore = memberStore;
         this.signinStore = signinStore;
         this.pinStore = pinStore;
         this.sessionStore = sessionStore;
+        this.scheduleStore = scheduleStore;
         this.tts = tts;
     }
     
@@ -216,5 +222,49 @@ public class AdminController
         {
             return new AlertMessage(false, String.format("%d members have conflicting sign-ins with the given time period.", alreadySignedInMembers.size()));
         }
+    }
+    
+    public AlertMessage fixAdminForgotSignOut()
+    {
+        List<Member> usersToFix = memberStore.getMembers()
+                                         .stream()
+                                         .filter(member -> member.isSignedIn())
+                                         .collect(Collectors.toList());
+        List<Member> adminsToFix = usersToFix.stream()
+                                             .filter(member -> member.getRole() == Role.ADMIN)
+                                             .collect(Collectors.toList());
+        if(adminsToFix.size() == 0)
+        {
+            return new AlertMessage(false, "No admins forgot to sign out");
+        }
+        
+        long startTime = adminsToFix.stream()
+                                    .mapToLong(Member::getLastSignIn)
+                                    .min()
+                                    .orElse(-1);
+        DaySchedule schedule;
+        if(startTime != -1)
+        {
+            schedule = scheduleStore.getSchedule(startTime);
+        }
+        else
+        {
+            return new AlertMessage(false, "Failed to find admin's last sign in time");
+        }
+        long endTime = Math.min(TimeUtil.getEpochSeconds(TimeUtil.getDateTime(startTime).with(schedule.getEnd())),
+                                TimeUtil.getCurrentTimestamp());
+        
+        for(Member member: usersToFix)
+        {
+            memberStore.signOut(member, member.getRole() != Role.ADMIN, endTime);
+        }
+        sessionStore.endSession(adminsToFix.get(0));
+        
+        // TODO ideally this should also do the DB backup that's in SessionController
+        return new AlertMessage(true, String.format("Fixed session not ended by %s %s. New session end is %s; %d members signed out.",
+                                                    adminsToFix.get(0).getFirstName(),
+                                                    adminsToFix.get(0).getLastName(),
+                                                    TimeUtil.formatTime(endTime),
+                                                    usersToFix.size()));
     }
 }
