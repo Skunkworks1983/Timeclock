@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,5 +70,10 @@ public class ScheduleStore
     public DaySchedule getSchedule(LocalDateTime date)
     {
         return scheduleMap.get(date.getDayOfWeek());
+    }
+    
+    public DaySchedule getSchedule(long timestamp)
+    {
+        return getSchedule(TimeUtil.getDateTime(timestamp));
     }
 }

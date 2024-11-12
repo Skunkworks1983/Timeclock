@@ -46,10 +46,14 @@ public class SessionStore
     
     public void endSession(Member endedBy)
     {
+        endSession(endedBy, TimeUtil.getCurrentTimestamp());
+    }
+    
+    public void endSession(Member endedBy, long time)
+    {
         if(endedBy.getRole().equals(Role.ADMIN) && (isSessionActive() || getQueuedSessionStart() > 0))
         {
             DatabaseConnector.runQuery(query -> {
-                long sessionEnd = TimeUtil.getCurrentTimestamp();
                 long sessionStart = query.select(SESSIONS.START)
                                          .from(SESSIONS)
                                          .where(SESSIONS.END.eq(0L))
@@ -57,10 +61,10 @@ public class SessionStore
                                          .get(SESSIONS.START);
                 double scheduledHours = scheduleStore.getScheduleOverlap(
                         TimeUtil.getDateTime(sessionStart),
-                        TimeUtil.getDateTime(sessionEnd));
+                        TimeUtil.getDateTime(time));
                 
                 query.update(SESSIONS)
-                     .set(SESSIONS.END, sessionEnd)
+                     .set(SESSIONS.END, time)
                      .set(SESSIONS.SCHEDULEDHOURS, (float) scheduledHours)
                      .set(SESSIONS.ENDEDBY, endedBy.getId().toString())
                      .where(SESSIONS.END.eq(0L))
