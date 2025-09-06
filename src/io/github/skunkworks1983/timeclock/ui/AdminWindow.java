@@ -42,6 +42,7 @@ public class AdminWindow extends JFrame
     private final JButton rebuildHoursButton;
     private final JButton groupSignInButton;
     private final JButton fixAdminForgotSignOutButton;
+    private final JButton forceSyncButton;
     
     private boolean authenticated = false;
     private Member currentAdmin = null;
@@ -83,10 +84,11 @@ public class AdminWindow extends JFrame
         rebuildHoursButton = new JButton("8: Rebuild member hours from signins");
         groupSignInButton = new JButton("9: Group sign-in/out");
         fixAdminForgotSignOutButton = new JButton("Fix admin forgot to sign out");
+        forceSyncButton = new JButton("Force cloud sync");
     
         setIconImage(Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("skunkicon.png")));
         
-        setLayout(new MigLayout("", "[grow]", "[][][][][][][][][][][]"));
+        setLayout(new MigLayout("", "[grow]", "[][][][][][][][][][][][]"));
         
         add(instructions, "cell 0 0, grow");
         add(passwordField, "cell 0 1, grow");
@@ -100,6 +102,7 @@ public class AdminWindow extends JFrame
         add(rebuildHoursButton, "cell 0 9, grow");
         add(groupSignInButton, "cell 0 10, grow");
         add(fixAdminForgotSignOutButton, "cell 0 11, grow");
+        add(forceSyncButton, "cell 0 12, grow");
         
         pack();
         setLocationRelativeTo(null);
@@ -194,6 +197,7 @@ public class AdminWindow extends JFrame
         rebuildHoursButton.addActionListener(e -> rebuildHours());
         groupSignInButton.addActionListener(e-> runGroupSignIn());
         fixAdminForgotSignOutButton.addActionListener(e -> fixAdminForgotSignOut());
+        
     }
     
     private void showCreateMemberWindow()
@@ -302,6 +306,11 @@ public class AdminWindow extends JFrame
         alertWindow.showAlert(adminController.fixAdminForgotSignOut());
     }
     
+    private void forceSync()
+    {
+        alertWindow.showAlert(adminController.forceSync());
+    }
+    
     @Override
     public void setVisible(boolean b)
     {
@@ -346,6 +355,8 @@ public class AdminWindow extends JFrame
         groupSignInButton.setVisible(authenticated);
         fixAdminForgotSignOutButton.setEnabled(authenticated);
         fixAdminForgotSignOutButton.setVisible(authenticated);
+        forceSyncButton.setEnabled(authenticated);
+        forceSyncButton.setVisible(authenticated);
         
         pack();
         setLocationRelativeTo(null);

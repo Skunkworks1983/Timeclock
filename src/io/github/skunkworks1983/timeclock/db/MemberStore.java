@@ -1,7 +1,10 @@
 package io.github.skunkworks1983.timeclock.db;
 
 import com.google.inject.Inject;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Signins;
+import io.github.skunkworks1983.timeclock.db.generated.tables.records.MembertransactionsRecord;
 import io.github.skunkworks1983.timeclock.db.generated.tables.records.SigninsRecord;
 
 import java.util.List;
@@ -147,7 +150,15 @@ public class MemberStore
     
     public boolean createMember(Member member)
     {
-        return DatabaseConnector.runQuery(query -> query.executeInsert(query.newRecord(MEMBERS, member))) > 0;
+        boolean result = DatabaseConnector.runQuery(query -> query.executeInsert(query.newRecord(MEMBERS, member))) > 0;
+        if(result)
+        {
+            DatabaseConnector.runQuery(query -> {
+                query.executeInsert(new MembertransactionsRecord(TimeUtil.getCurrentTimestamp(), MEMBERS.getName(), member.getId().toString()));
+                return null;
+            });
+        }
+        return result;
     }
     
     // Invoked by the RebuildController. Will overwrite the member's hours in the database.

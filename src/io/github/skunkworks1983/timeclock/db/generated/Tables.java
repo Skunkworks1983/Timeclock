@@ -5,6 +5,7 @@ package io.github.skunkworks1983.timeclock.db.generated;
 
 
 import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Membertransactions;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Sessions;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Signins;
@@ -20,6 +21,11 @@ public class Tables {
      * The table <code>members</code>.
      */
     public static final Members MEMBERS = Members.MEMBERS;
+
+    /**
+     * The table <code>MemberTransactions</code>.
+     */
+    public static final Membertransactions MEMBERTRANSACTIONS = Membertransactions.MEMBERTRANSACTIONS;
 
     /**
      * The table <code>pins</code>.

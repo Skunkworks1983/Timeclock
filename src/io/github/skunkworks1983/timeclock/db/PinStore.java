@@ -1,6 +1,8 @@
 package io.github.skunkworks1983.timeclock.db;
 
+import io.github.skunkworks1983.timeclock.db.generated.tables.Membertransactions;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
+import io.github.skunkworks1983.timeclock.db.generated.tables.records.MembertransactionsRecord;
 import org.jooq.Record2;
 import org.jooq.Result;
 
@@ -80,6 +82,11 @@ public class PinStore
                      .execute();
                 return null;
             });
+    
+            DatabaseConnector.runQuery(query -> {
+                query.executeInsert(new MembertransactionsRecord(TimeUtil.getCurrentTimestamp(), Pins.PINS.getName(), memberId.toString()));
+                return null;
+            });
             
             return pin;
         }
@@ -99,5 +106,10 @@ public class PinStore
                                             .execute();
                                        return null;
                                    });
+    
+        DatabaseConnector.runQuery(query -> {
+            query.executeInsert(new MembertransactionsRecord(TimeUtil.getCurrentTimestamp(), Pins.PINS.getName(), memberId.toString()));
+            return null;
+        });
     }
 }

@@ -1,17 +1,25 @@
 package io.github.skunkworks1983.timeclock.db;
 
 import com.google.inject.Inject;
+import io.github.skunkworks1983.timeclock.db.generated.tables.records.SessionsRecord;
+import org.jooq.Result;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import static io.github.skunkworks1983.timeclock.db.generated.tables.Sessions.SESSIONS;
-import static io.github.skunkworks1983.timeclock.db.generated.tables.Signins.SIGNINS;
 
 public class SessionStore
 {
     private final ScheduleStore scheduleStore;
+    
+    private final Object scheduledHoursFreshLock = new Object();
+    private boolean scheduledHoursFresh = false;
+    private double scheduledHours = 0;
     
     @Inject
     public SessionStore(ScheduleStore scheduleStore)
@@ -23,23 +31,27 @@ public class SessionStore
     {
         if(startedBy.getRole().equals(Role.ADMIN) && !(isSessionActive() || getQueuedSessionStart() > 0))
         {
-            return DatabaseConnector.runQuery(query -> {
-                long startTime = TimeUtil.getCurrentTimestamp();
-                LocalTime start = scheduleStore.getSchedule().getStart();
-                if(delayUntilScheduled && start.isAfter(
-                        LocalTime.parse("00:00")) && start.isAfter(LocalTime.now()))
-                {
-                    startTime = OffsetDateTime.now()
-                                              .withHour(start.getHour())
-                                              .withMinute(start.getMinute())
-                                              .withSecond(0)
-                                              .toEpochSecond();
-                }
-                query.insertInto(SESSIONS)
-                     .values(UUID.randomUUID().toString(), 0, startedBy.getId().toString(), null, startTime, 0)
-                     .execute();
-                return startTime;
-            });
+            synchronized(scheduledHoursFreshLock)
+            {
+                scheduledHoursFresh = false;
+                return DatabaseConnector.runQuery(query -> {
+                    long startTime = TimeUtil.getCurrentTimestamp();
+                    LocalTime start = scheduleStore.getSchedule().getStart();
+                    if(delayUntilScheduled && start.isAfter(
+                            LocalTime.parse("00:00")) && start.isAfter(LocalTime.now()))
+                    {
+                        startTime = OffsetDateTime.now()
+                                                  .withHour(start.getHour())
+                                                  .withMinute(start.getMinute())
+                                                  .withSecond(0)
+                                                  .toEpochSecond();
+                    }
+                    query.insertInto(SESSIONS)
+                         .values(UUID.randomUUID().toString(), 0, startedBy.getId().toString(), null, startTime, 0)
+                         .execute();
+                    return startTime;
+                });
+            }
         }
         return -1;
     }
@@ -53,24 +65,28 @@ public class SessionStore
     {
         if(endedBy.getRole().equals(Role.ADMIN) && (isSessionActive() || getQueuedSessionStart() > 0))
         {
-            DatabaseConnector.runQuery(query -> {
-                long sessionStart = query.select(SESSIONS.START)
-                                         .from(SESSIONS)
-                                         .where(SESSIONS.END.eq(0L))
-                                         .fetchAny()
-                                         .get(SESSIONS.START);
-                double scheduledHours = scheduleStore.getScheduleOverlap(
-                        TimeUtil.getDateTime(sessionStart),
-                        TimeUtil.getDateTime(time));
-                
-                query.update(SESSIONS)
-                     .set(SESSIONS.END, time)
-                     .set(SESSIONS.SCHEDULEDHOURS, (float) scheduledHours)
-                     .set(SESSIONS.ENDEDBY, endedBy.getId().toString())
-                     .where(SESSIONS.END.eq(0L))
-                     .execute();
-                return null;
-            });
+            synchronized(scheduledHoursFreshLock)
+            {
+                DatabaseConnector.runQuery(query -> {
+                    long sessionStart = query.select(SESSIONS.START)
+                                             .from(SESSIONS)
+                                             .where(SESSIONS.END.eq(0L))
+                                             .fetchAny()
+                                             .get(SESSIONS.START);
+                    double scheduledHours = scheduleStore.getScheduleOverlap(
+                            TimeUtil.getDateTime(sessionStart),
+                            TimeUtil.getDateTime(time));
+        
+                    query.update(SESSIONS)
+                         .set(SESSIONS.END, time)
+                         .set(SESSIONS.SCHEDULEDHOURS, (float) scheduledHours)
+                         .set(SESSIONS.ENDEDBY, endedBy.getId().toString())
+                         .where(SESSIONS.END.eq(0L))
+                         .execute();
+                    return null;
+                });
+                scheduledHoursFresh = false;
+            }
         }
     }
     
@@ -100,15 +116,15 @@ public class SessionStore
             return DatabaseConnector.runQuery((query) -> {
                 long now = TimeUtil.getCurrentTimestamp();
                 String sessionId = query.select()
-                     .from(SESSIONS)
-                     .where(SESSIONS.START.le(now)
-                                          .and(SESSIONS.END.eq(
-                                                               0L)
-                                                           .or(SESSIONS.END.ge(
-                                                                   now))
+                                        .from(SESSIONS)
+                                        .where(SESSIONS.START.le(now)
+                                                             .and(SESSIONS.END.eq(
+                                                                                  0L)
+                                                                              .or(SESSIONS.END.ge(
+                                                                                      now))
+                                                                 )
                                               )
-                           )
-                        .fetchOne(SESSIONS.ID);
+                                        .fetchOne(SESSIONS.ID);
                 return UUID.fromString(sessionId);
             });
         }
@@ -128,7 +144,8 @@ public class SessionStore
                                                                       time))
                                                  )
                               )
-                        .fetchOne(SESSIONS.ID);
+                        .orderBy(SESSIONS.END.desc())
+                        .fetchAny(SESSIONS.ID);
         });
         
         return sessionId == null ? null : UUID.fromString(sessionId);
@@ -150,20 +167,65 @@ public class SessionStore
     
     public double calculateScheduledHours()
     {
-        return DatabaseConnector.runQuery(query -> {
-            double total = 0;
-            for(float hours : query.selectFrom(SESSIONS)
-                                   .fetch(SESSIONS.SCHEDULEDHOURS))
+        synchronized(scheduledHoursFreshLock)
+        {
+            if(!scheduledHoursFresh)
             {
-                total += hours;
+                scheduledHours = DatabaseConnector.runQuery(query -> {
+                    double total = 0;
+                    Map<LocalDate, Result<SessionsRecord>> sessionsByDate = query.selectFrom(SESSIONS)
+                                                                                 .orderBy(SESSIONS.START.asc(),
+                                                                                          SESSIONS.END.asc())
+                                                                                 .fetch()
+                                                                                 .intoGroups(
+                                                                                         session -> TimeUtil.getDateTime(
+                                                                                                                    session.getStart())
+                                                                                                            .toLocalDate());
+                    ;
+                    for(Map.Entry<LocalDate, Result<SessionsRecord>> entry : sessionsByDate.entrySet())
+                    {
+                        if(entry.getValue().size() == 1)
+                        {
+                            total += entry.getValue().get(0).getScheduledhours();
+                        }
+                        else if(entry.getValue().size() > 1)
+                        {
+                            LocalDateTime intervalStart = TimeUtil.getDateTime(
+                                    entry.getValue().getValue(0, SESSIONS.START));
+                            LocalDateTime intervalEnd = TimeUtil.getDateTime(
+                                    entry.getValue().getValue(0, SESSIONS.END));
+                            for(SessionsRecord session : entry.getValue())
+                            {
+                                LocalDateTime sessionStart = TimeUtil.getDateTime(session.getStart());
+                                LocalDateTime sessionEnd = TimeUtil.getDateTime(session.getEnd());
+                                if(sessionStart.isBefore(intervalEnd))
+                                {
+                                    if(sessionEnd.isAfter(intervalEnd))
+                                    {
+                                        intervalEnd = TimeUtil.getDateTime(session.getEnd());
+                                    }
+                                }
+                                else
+                                {
+                                    total += scheduleStore.getScheduleOverlap(intervalStart, intervalEnd);
+                                    intervalStart = sessionStart;
+                                    intervalEnd = sessionEnd;
+                                }
+                            }
+                            total += scheduleStore.getScheduleOverlap(intervalStart, intervalEnd);
+                        }
+                    }
+                    return total;
+                });
+                scheduledHoursFresh = true;
             }
-            return total;
-        });
+        }
+        return scheduledHours;
     }
     
     public void createPreviousSession(Member createdBy, long start, long end)
     {
-        if(createdBy.getRole().equals(Role.ADMIN) && !hasOverlappingSession(start) && !hasOverlappingSession(end))
+        if(createdBy.getRole().equals(Role.ADMIN))
         {
             DatabaseConnector.runQuery(query -> {
                 String sessionId = UUID.randomUUID().toString();
@@ -179,15 +241,7 @@ public class SessionStore
                 
                 return null;
             });
+            scheduledHoursFresh = false;
         }
-    }
-    
-    public boolean hasOverlappingSession(long time)
-    {
-        // TODO this doesn't handle the case where the new session fully contains an old session
-        return DatabaseConnector.runQuery(query -> query.selectFrom(SESSIONS)
-                                                        .where(SESSIONS.START.lessThan(time),
-                                                               SESSIONS.END.greaterThan(time))
-                                                        .fetchAny() != null);
     }
 }

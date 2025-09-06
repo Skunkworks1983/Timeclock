@@ -5,9 +5,11 @@ package io.github.skunkworks1983.timeclock.db.generated;
 
 
 import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Membertransactions;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Sessions;
 import io.github.skunkworks1983.timeclock.db.generated.tables.records.MembersRecord;
+import io.github.skunkworks1983.timeclock.db.generated.tables.records.MembertransactionsRecord;
 import io.github.skunkworks1983.timeclock.db.generated.tables.records.PinsRecord;
 import io.github.skunkworks1983.timeclock.db.generated.tables.records.SessionsRecord;
 import org.jooq.TableField;
@@ -21,14 +23,14 @@ import org.jooq.impl.Internal;
  * default schema.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class Keys
-{
+public class Keys {
 
     // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<MembersRecord> MEMBERS__ = Internal.createUniqueKey(Members.MEMBERS, DSL.name(""), new TableField[] { Members.MEMBERS.ID }, true);
+    public static final UniqueKey<MembertransactionsRecord> MEMBERTRANSACTIONS__ = Internal.createUniqueKey(Membertransactions.MEMBERTRANSACTIONS, DSL.name(""), new TableField[] { Membertransactions.MEMBERTRANSACTIONS.TIME, Membertransactions.MEMBERTRANSACTIONS.TABLENAME, Membertransactions.MEMBERTRANSACTIONS.ID }, true);
     public static final UniqueKey<PinsRecord> PINS__ = Internal.createUniqueKey(Pins.PINS, DSL.name(""), new TableField[] { Pins.PINS.MEMBERID }, true);
     public static final UniqueKey<SessionsRecord> SESSIONS__ = Internal.createUniqueKey(Sessions.SESSIONS, DSL.name(""), new TableField[] { Sessions.SESSIONS.ID }, true);
 }

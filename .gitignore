@@ -8,4 +8,5 @@ awsCreds.json
 */awsCreds.json
 testtable-*
 logintable*
+testtablev2-*
 *.csv

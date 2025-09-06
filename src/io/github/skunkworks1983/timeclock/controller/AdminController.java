@@ -1,6 +1,8 @@
 package io.github.skunkworks1983.timeclock.controller;
 
 import com.google.inject.Inject;
+import io.github.skunkworks1983.timeclock.db.BackupHandler;
+import io.github.skunkworks1983.timeclock.db.DatabaseConnector;
 import io.github.skunkworks1983.timeclock.db.DaySchedule;
 import io.github.skunkworks1983.timeclock.db.HashUtil;
 import io.github.skunkworks1983.timeclock.db.Member;
@@ -15,8 +17,10 @@ import io.github.skunkworks1983.timeclock.db.TimeUtil;
 import io.github.skunkworks1983.timeclock.ui.AlertMessage;
 import io.github.skunkworks1983.timeclock.ui.TextToSpeechHandler;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class AdminController
 {
@@ -37,10 +40,13 @@ public class AdminController
     private final SessionStore sessionStore;
     private final ScheduleStore scheduleStore;
     private final TextToSpeechHandler tts;
+    private final BackupHandler backupHandler;
     
     @Inject
-    public AdminController(MemberStore memberStore, SigninStore signinStore, PinStore pinStore, SessionStore sessionStore,
-                           ScheduleStore scheduleStore, TextToSpeechHandler tts)
+    public AdminController(MemberStore memberStore, SigninStore signinStore, PinStore pinStore,
+                           SessionStore sessionStore,
+                           ScheduleStore scheduleStore, TextToSpeechHandler tts,
+                           BackupHandler backupHandler)
     {
         this.memberStore = memberStore;
         this.signinStore = signinStore;
@@ -48,6 +54,7 @@ public class AdminController
         this.sessionStore = sessionStore;
         this.scheduleStore = scheduleStore;
         this.tts = tts;
+        this.backupHandler = backupHandler;
     }
     
     public AlertMessage authenticateAdminWindow(char[] enteredPass)
@@ -109,74 +116,7 @@ public class AdminController
     
     public AlertMessage rebuildHours()
     {
-        // Get a list of signins from the database
-        List<Signin> signins = signinStore.getSignins();
-        
-        // Get a list of members from the database
-        List<Member> members = memberStore.getMembers();
-        
-        Map<UUID, Double> uuidToOldHours = new HashMap<UUID, Double>();
-        // Zero out the hours, since we are rebuilding from the signins table
-        for(Member member : members)
-        {
-            uuidToOldHours.put(member.getId(), member.getHours());
-            member.setHours(0);
-        }
-        
-        // Iterate through signins
-        for(Signin signin : signins)
-        {
-            // If signing in, set member.lastSignedIn
-            if(signin.getIsSigningIn())
-            {
-                members.stream()
-                       .filter(m -> m.getId().equals(signin.getMemberId()))
-                       .findFirst()
-                       .get()
-                       .setLastSignIn(signin.getTime());
-            }
-            // If signing out, calculate time delta and add to hours
-            else
-            {
-                Member member = members.stream()
-                                       .filter(m -> m.getId().equals(signin.getMemberId()))
-                                       .findFirst()
-                                       .get();
-                
-                // Calculate the delta
-                double delta = TimeUtil.convertSecToHour(signin.getTime() - member.getLastSignIn());
-                
-                // If it was a force signout, then max the hours to 1
-                if(signin.getIsForce())
-                {
-                    delta = Math.max(delta, 1.0);
-                }
-                
-                // Update the member's hours
-                member.setHours(member.getHours() + delta);
-            }
-        }
-        
-        // Write new members to Members table
-        for(Member member : members)
-        {
-            memberStore.writeMemberHours(member);
-        }
-        
-        StringBuilder alertMsg = new StringBuilder("Rebuilt members table. Data:\n");
-        
-        // Display debug alert
-        for(Member member : members)
-        {
-            if(member.getHours() != 0 && !(uuidToOldHours.get(member.getId()) - 0.5 < member.getHours()
-                    && member.getHours() < uuidToOldHours.get(member.getId()) + 0.5))
-            {
-                alertMsg.append(String.format("\t%s %s: %.2f->%.2f\n", member.getFirstName(), member.getLastName(),
-                                              uuidToOldHours.get(member.getId()), member.getHours()));
-            }
-        }
-        
-        return new AlertMessage(true, alertMsg.toString());
+        return backupHandler.rebuildHours();
     }
     
     public AlertMessage createGroupSignIn(List<Member> members, Member admin, OffsetDateTime start, OffsetDateTime end)
@@ -197,31 +137,50 @@ public class AdminController
                 alreadySignedInMembers.add(m);
             }
         }
+    
+        String currentDb = DatabaseConnector.getDatabaseFile();
+        String copyDb = currentDb + "-merge";
+        if(!alreadySignedInMembers.isEmpty())
+        {
+            try
+            {
+                Files.deleteIfExists(Path.of(copyDb));
+                Files.copy(Path.of(currentDb), Path.of(copyDb));
+            }
+            catch(IOException e)
+            {
+                return new AlertMessage(false, String.format("%d members have conflicting sign-ins with the given time period and merging failed.", alreadySignedInMembers.size()));
+            }
+            DatabaseConnector.setDatabaseFile(copyDb);
+        }
+    
+        sessionStore.createPreviousSession(admin, startSecond, endSecond);
+        for(Member m: members)
+        {
+            memberStore.addPreviousSignIn(m, startSecond, endSecond);
+        }
+    
+        if(!alreadySignedInMembers.isEmpty())
+        {
+            DatabaseConnector.setDatabaseFile(currentDb);
+            backupHandler.mergeOtherDatabase(copyDb);
+            try
+            {
+                Files.deleteIfExists(Path.of(copyDb));
+            }
+            catch(IOException e)
+            {
+                // don't care
+            }
+        }
         
-        if(alreadySignedInMembers.isEmpty())
-        {
-            if(sessionStore.hasOverlappingSession(startSecond) || sessionStore.hasOverlappingSession(endSecond))
-            {
-                return new AlertMessage(false, "There is an existing session that conflicts with the given time period.");
-            }
-            sessionStore.createPreviousSession(admin, startSecond, endSecond);
-            for(Member m: members)
-            {
-                memberStore.addPreviousSignIn(m, startSecond, endSecond);
-            }
-            
-            tts.speak("Group retroactively signed in");
-            return new AlertMessage(true, String.format("%d members signed in from %s to %s by %s %s.",
-                                                        members.size(),
-                                                        TimeUtil.formatTime(startSecond),
-                                                        TimeUtil.formatTime(endSecond),
-                                                        admin.getFirstName(),
-                                                        admin.getLastName()));
-        }
-        else
-        {
-            return new AlertMessage(false, String.format("%d members have conflicting sign-ins with the given time period.", alreadySignedInMembers.size()));
-        }
+        tts.speak("Group retroactively signed in");
+        return new AlertMessage(true, String.format("%d members signed in from %s to %s by %s %s.",
+                                                    members.size(),
+                                                    TimeUtil.formatTime(startSecond),
+                                                    TimeUtil.formatTime(endSecond),
+                                                    admin.getFirstName(),
+                                                    admin.getLastName()));
     }
     
     public AlertMessage fixAdminForgotSignOut()
@@ -260,11 +219,22 @@ public class AdminController
         }
         sessionStore.endSession(adminsToFix.get(0));
         
-        // TODO ideally this should also do the DB backup that's in SessionController
         return new AlertMessage(true, String.format("Fixed session not ended by %s %s. New session end is %s; %d members signed out.",
                                                     adminsToFix.get(0).getFirstName(),
                                                     adminsToFix.get(0).getLastName(),
                                                     TimeUtil.formatTime(endTime),
                                                     usersToFix.size()));
+    }
+    
+    public AlertMessage forceSync()
+    {
+        if(!sessionStore.isSessionActive())
+        {
+            return backupHandler.doBackup();
+        }
+        else
+        {
+            return new AlertMessage(false, "Can't force sync while session is active");
+        }
     }
 }

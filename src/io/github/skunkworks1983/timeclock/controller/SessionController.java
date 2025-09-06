@@ -5,9 +5,11 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.google.inject.Inject;
+import io.github.skunkworks1983.timeclock.db.BackupHandler;
 import io.github.skunkworks1983.timeclock.db.DatabaseConnector;
 import io.github.skunkworks1983.timeclock.db.Member;
 import io.github.skunkworks1983.timeclock.db.MemberStore;
@@ -28,16 +30,16 @@ public class SessionController
     private final SessionStore sessionStore;
     private final MemberStore memberStore;
     private final TextToSpeechHandler tts;
-    private final AWSCredentials awsCredentials;
+    private final BackupHandler backupHandler;
     
     @Inject
     public SessionController(SessionStore sessionStore, MemberStore memberStore,
-                             TextToSpeechHandler tts, @Nullable AWSCredentials awsCredentials)
+                             TextToSpeechHandler tts, BackupHandler backupHandler)
     {
         this.sessionStore = sessionStore;
         this.memberStore = memberStore;
         this.tts = tts;
-        this.awsCredentials = awsCredentials;
+        this.backupHandler = backupHandler;
     }
     
     public double calculateScheduledHours()
@@ -83,32 +85,7 @@ public class SessionController
         sessionStore.endSession(endedBy);
         
         // back up database
-        new Thread(() -> {
-            String currentDbFile = DatabaseConnector.getDatabaseFile();
-            String backupDbFile = String.format("%s-%d", currentDbFile, TimeUtil.getCurrentTimestamp());
-            try
-            {
-                Files.copy(Path.of(currentDbFile), Path.of(backupDbFile));
-            }
-            catch(IOException e)
-            {
-                e.printStackTrace();
-                return;
-            }
-            
-            if(awsCredentials != null)
-            {
-                AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(awsCredentials);
-                AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-                                                         .withCredentials(credentialsProvider)
-                                                         .withRegion("us-west-2")
-                                                         .build();
-                
-                TransferManager transferManager = TransferManagerBuilder.standard().withS3Client(s3Client).build();
-                
-                transferManager.upload("skunklogindbbackupbucket", backupDbFile, new File(backupDbFile));
-            }
-        }).start();
+        new Thread(backupHandler::doBackup).start();
         
         tts.speak(String.format("Session ended by %s %s", endedBy.getFirstName(), endedBy.getLastName()));
         return new AlertMessage(true, String.format("Session ended by %s %s at %s; %d member(s) force signed out.",

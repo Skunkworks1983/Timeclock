@@ -5,6 +5,7 @@ package io.github.skunkworks1983.timeclock.db.generated;
 
 
 import io.github.skunkworks1983.timeclock.db.generated.tables.Members;
+import io.github.skunkworks1983.timeclock.db.generated.tables.Membertransactions;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Pins;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Sessions;
 import io.github.skunkworks1983.timeclock.db.generated.tables.Signins;
@@ -33,6 +34,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>members</code>.
      */
     public final Members MEMBERS = Members.MEMBERS;
+
+    /**
+     * The table <code>MemberTransactions</code>.
+     */
+    public final Membertransactions MEMBERTRANSACTIONS = Membertransactions.MEMBERTRANSACTIONS;
 
     /**
      * The table <code>pins</code>.
@@ -66,6 +72,7 @@ public class DefaultSchema extends SchemaImpl {
     public final List<Table<?>> getTables() {
         return Arrays.asList(
             Members.MEMBERS,
+            Membertransactions.MEMBERTRANSACTIONS,
             Pins.PINS,
             Sessions.SESSIONS,
             Signins.SIGNINS

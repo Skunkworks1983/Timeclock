@@ -9,9 +9,6 @@ import io.github.skunkworks1983.timeclock.ui.UiModule;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 import java.awt.Font;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class Main
 {
@@ -19,11 +16,11 @@ public class Main
     {
         if(args.length > 0)
         {
-            setUpDatabase(args[0]);
+            DatabaseConnector.setUpDatabase(args[0]);
         }
         else
         {
-            setUpDatabase("logintable");
+            DatabaseConnector.setUpDatabase("logintable");
         }
         
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -37,13 +34,4 @@ public class Main
         Guice.createInjector(new UiModule(), new ControllerModule()).getInstance(MainWindow.class).prepare();
     }
     
-    private static void setUpDatabase(String databaseFile) throws IOException
-    {
-        if(!Files.exists(Path.of(databaseFile)))
-        {
-            System.out.println(databaseFile + " not found, generating new database");
-            Files.copy(ClassLoader.getSystemClassLoader().getResourceAsStream("blanktable"), Path.of(databaseFile));
-        }
-        DatabaseConnector.setDatabaseFile(databaseFile);
-    }
 }
