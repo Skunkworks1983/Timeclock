@@ -61,10 +61,12 @@ public class BackupHandler
     
     public AlertMessage doBackup()
     {
+        System.out.println("starting backup");
         String currentDbFile = DatabaseConnector.getDatabaseFile();
         
         if(awsCredentials != null)
         {
+            System.out.println("checking S3 object list");
             AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(awsCredentials);
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
                                                      .withCredentials(credentialsProvider)
@@ -81,6 +83,7 @@ public class BackupHandler
                 objectListing = s3Client.listNextBatchOfObjects(objectListing);
                 summaries.addAll(objectListing.getObjectSummaries());
             }
+            System.out.printf("found %d objects", summaries.size());
             
             TransferManager transferManager = TransferManagerBuilder.standard().withS3Client(s3Client).build();
             
@@ -97,12 +100,15 @@ public class BackupHandler
                 }
                 
                 String toMergeFileName = String.format("%s-merge", mostRecentSummary.getKey());
+                System.out.println("downloading " + toMergeFileName);
                 Download toMergeDownload = transferManager.download(BUCKET, mostRecentSummary.getKey(),
                                                                     new File(toMergeFileName));
                 try
                 {
                     toMergeDownload.waitForCompletion();
+                    System.out.println("download done, starting merge");
                     mergeOtherDatabase(toMergeFileName);
+                    System.out.println("merge done");
                     mergeDone = true;
                 }
                 catch(InterruptedException e)

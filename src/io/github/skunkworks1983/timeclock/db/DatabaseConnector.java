@@ -74,6 +74,7 @@ public class DatabaseConnector
     
     public static void setUpDatabase(String databaseFile) throws IOException
     {
+        System.out.println("setting up database " + databaseFile);
         if(!Files.exists(Path.of(databaseFile)))
         {
             System.out.println(databaseFile + " not found, generating new database");

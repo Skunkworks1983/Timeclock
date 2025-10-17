@@ -94,6 +94,8 @@ public class AlertWindow extends JFrame
             messageArea.setText(message.getMessage());
             okButtonCallback = message.getOkButtonCallback();
             
+            System.out.println(message.getMessage());
+            
             pack();
             setLocationRelativeTo(null);
             setVisible(true);

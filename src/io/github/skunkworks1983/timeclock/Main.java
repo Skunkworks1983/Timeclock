@@ -20,7 +20,7 @@ public class Main
         }
         else
         {
-            DatabaseConnector.setUpDatabase("logintable");
+            DatabaseConnector.setUpDatabase("logintablev2");
         }
         
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

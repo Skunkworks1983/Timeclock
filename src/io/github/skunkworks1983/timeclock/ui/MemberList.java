@@ -67,7 +67,6 @@ public class MemberList extends JList<Member>
                 
                 if(bufferUpdated)
                 {
-                    System.out.println("buffer " + buffer);
                     if(!buffer.isBlank())
                     {
                         int selection = Integer.parseInt(buffer);
@@ -90,7 +89,6 @@ public class MemberList extends JList<Member>
                 
                 if(e.getKeyChar() == '\n')
                 {
-                    System.out.println("enter");
                     if(getSelectedIndex() != -1)
                     {
                         System.out.println("selecting " + getSelectedIndex());
