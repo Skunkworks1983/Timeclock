@@ -197,7 +197,7 @@ public class AdminWindow extends JFrame
         rebuildHoursButton.addActionListener(e -> rebuildHours());
         groupSignInButton.addActionListener(e-> runGroupSignIn());
         fixAdminForgotSignOutButton.addActionListener(e -> fixAdminForgotSignOut());
-        
+        forceSyncButton.addActionListener(e -> forceSync());
     }
     
     private void showCreateMemberWindow()
@@ -304,11 +304,13 @@ public class AdminWindow extends JFrame
     private void fixAdminForgotSignOut()
     {
         alertWindow.showAlert(adminController.fixAdminForgotSignOut());
+        mainListRefresher.refresh();
     }
     
     private void forceSync()
     {
         alertWindow.showAlert(adminController.forceSync());
+        mainListRefresher.refresh();
     }
     
     @Override

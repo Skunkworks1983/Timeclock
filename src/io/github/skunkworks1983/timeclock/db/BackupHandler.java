@@ -93,7 +93,7 @@ public class BackupHandler
                 S3ObjectSummary mostRecentSummary = summaries.get(0);
                 for(S3ObjectSummary summary : summaries)
                 {
-                    if(summary.getLastModified().after(mostRecentSummary.getLastModified()))
+                    if(summary.getLastModified().after(mostRecentSummary.getLastModified()) && summary.getKey().matches(String.format("%s(?:\\-\\d{10,})?$", currentDbFile)))
                     {
                         mostRecentSummary = summary;
                     }

@@ -106,8 +106,16 @@ public class SignInController
                             result = sessionController.startSession(member, false);
                         }
                         memberStore.signIn(member);
-                        speakSignIn(member, true);
-                        return result != null ? result : new AlertMessage(true, null);
+                        
+                        if(result != null)
+                        {
+                            return result;
+                        }
+                        else
+                        {
+                            speakSignIn(member, true);
+                            return new AlertMessage(true, null);
+                        }
                     }
                     else
                     {
