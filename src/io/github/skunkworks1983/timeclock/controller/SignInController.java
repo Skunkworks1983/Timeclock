@@ -100,13 +100,14 @@ public class SignInController
                 {
                     if(signingIn)
                     {
-                        memberStore.signIn(member);
+                        AlertMessage result = null;
                         if(!(isSessionActive || queuedSessionStart > 0))
                         {
-                            return sessionController.startSession(member, false);
+                            result = sessionController.startSession(member, false);
                         }
+                        memberStore.signIn(member);
                         speakSignIn(member, true);
-                        return new AlertMessage(true, null);
+                        return result != null ? result : new AlertMessage(true, null);
                     }
                     else
                     {
